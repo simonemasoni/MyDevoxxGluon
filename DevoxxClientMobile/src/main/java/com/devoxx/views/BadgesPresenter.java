@@ -34,18 +34,23 @@ import com.devoxx.util.DevoxxCountry;
 import com.devoxx.util.DevoxxSettings;
 import com.devoxx.views.cell.BadgeCell;
 import com.devoxx.views.helper.LoginPrompter;
-import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
-import com.gluonhq.charm.glisten.control.AppBar;
-import com.gluonhq.charm.glisten.control.CharmListView;
-import com.gluonhq.charm.glisten.mvc.View;
 import com.devoxx.views.helper.Placeholder;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.BarcodeScanService;
 import com.gluonhq.charm.down.plugins.ShareService;
 import com.gluonhq.charm.down.plugins.StorageService;
+import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
+import com.gluonhq.charm.glisten.control.AppBar;
+import com.gluonhq.charm.glisten.control.CharmListView;
 import com.gluonhq.charm.glisten.control.Toast;
-import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
+import com.gluonhq.charm.glisten.control.FloatingActionButton;
+import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
+import javafx.collections.ObservableList;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+
+import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
@@ -56,10 +61,6 @@ import java.time.format.FormatStyle;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javax.inject.Inject;
 
 public class BadgesPresenter extends GluonPresenter<DevoxxApplication> {
     private static final Logger LOG = Logger.getLogger(BadgesPresenter.class.getName());
@@ -155,7 +156,7 @@ public class BadgesPresenter extends GluonPresenter<DevoxxApplication> {
                 });
             });
         });
-        badgesView.getLayers().add(scan.getLayer());
+        scan.showOn(badgesView);
     }
 
 }

@@ -29,7 +29,6 @@ import com.devoxx.util.DevoxxBundle;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.VideoService;
 import com.gluonhq.charm.glisten.mvc.SplashView;
-import java.util.Arrays;
 import javafx.animation.PauseTransition;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -39,6 +38,8 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
+
+import java.util.Arrays;
 
 public class DevoxxSplash extends SplashView { 
 
@@ -54,7 +55,7 @@ public class DevoxxSplash extends SplashView {
                         hideSplashView();
                     }
                 });
-                video.setPlaylist(Arrays.asList("MyDevoxxIntro.mp4"));
+                video.getPlaylist().addAll(Arrays.asList("MyDevoxxIntro.mp4"));
                 // set enough time to have the view ready before playing:
                 PauseTransition delay = new PauseTransition(Duration.seconds(1.2));
                 delay.setOnFinished(d -> video.play());

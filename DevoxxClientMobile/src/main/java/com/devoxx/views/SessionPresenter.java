@@ -45,6 +45,7 @@ import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.control.AvatarPane;
 import com.gluonhq.charm.glisten.control.BottomNavigation;
+import com.gluonhq.charm.glisten.control.BottomNavigationButton;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -55,8 +56,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.Toggle;
-import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -82,16 +81,12 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
 
     private Node scheduleBtn;
     private Node favoriteBtn;
-    private Toggle lastSelectedButton;
 
     public void initialize() {
         sessionView.setOnShowing(event -> {
             AppBar appBar = getApp().getAppBar();
             appBar.setNavIcon(getApp().getNavBackButton());
             appBar.setTitleText(DevoxxView.SESSION.getTitle());
-            if(lastSelectedButton != null) {
-                lastSelectedButton.setSelected(true);
-            }
             // Fix for DEVOXX-54
             // This will not hamper the flow since both the buttons are
             // updated whenever a new session is chosen
@@ -124,11 +119,9 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
         final BottomNavigation bottomNavigation = createBottomNavigation(activeSession);
         sessionView.setBottom(bottomNavigation);
 
-        for (Node node : bottomNavigation.getActionItems()) {
-            ToggleButton toggleButton = (ToggleButton) node;
-            if (toggleButton.getUserData().equals(visiblePane)) {
-                toggleButton.setSelected(true);
-                lastSelectedButton = toggleButton;
+        for (BottomNavigationButton node : bottomNavigation.getActionItems()) {
+            if (node.getUserData().equals(visiblePane)) {
+                node.setSelected(true);
             }
         }
 
@@ -146,7 +139,7 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
 
         BottomNavigation bottomNavigation = new BottomNavigation();
 
-        final ToggleButton infoButton = bottomNavigation.createButton(DevoxxBundle.getString("OTN.BUTTON.INFO"), MaterialDesignIcon.INFO.graphic(), e -> {
+        final BottomNavigationButton infoButton = new BottomNavigationButton(DevoxxBundle.getString("OTN.BUTTON.INFO"), MaterialDesignIcon.INFO.graphic(), e -> {
             // when clicked create a label in a scrollpane. Label will contain
             // session summary for this session.
             Label sessionSummary = new Label(session.getSummary());
@@ -170,7 +163,7 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
         });
         infoButton.setUserData(Pane.INFO);
 
-        final ToggleButton speakerButton = bottomNavigation.createButton(DevoxxBundle.getString("OTN.BUTTON.SPEAKERS"), MaterialDesignIcon.ACCOUNT_CIRCLE.graphic(), e -> {
+        final BottomNavigationButton speakerButton = new BottomNavigationButton(DevoxxBundle.getString("OTN.BUTTON.SPEAKERS"), MaterialDesignIcon.ACCOUNT_CIRCLE.graphic(), e -> {
             // when clicked we create an avatar pane containing all speakers.
             // The entire avatar pane is not scrollable, as we want the speaker
             // avatars to remain fixed. Instead, we make the avatar content area
@@ -183,7 +176,7 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
         });
         speakerButton.setUserData(Pane.SPEAKER);
 
-        final ToggleButton noteButton = bottomNavigation.createButton(DevoxxBundle.getString("OTN.BUTTON.NOTES"), MaterialDesignIcon.MESSAGE.graphic(), e -> {
+        final BottomNavigationButton noteButton = new BottomNavigationButton(DevoxxBundle.getString("OTN.BUTTON.NOTES"), MaterialDesignIcon.MESSAGE.graphic(), e -> {
             if (service.isAuthenticated() || !DevoxxSettings.USE_REMOTE_NOTES) {
                 loadAuthenticatedNotesView(session);
             } else {
@@ -197,7 +190,7 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
         });
         noteButton.setUserData(Pane.NOTE);
 
-        final ToggleButton voteButton = bottomNavigation.createButton(DevoxxBundle.getString("OTN.BUTTON.VOTE"), MaterialDesignIcon.THUMBS_UP_DOWN.graphic(), e -> {
+        final BottomNavigationButton voteButton = new BottomNavigationButton(DevoxxBundle.getString("OTN.BUTTON.VOTE"), MaterialDesignIcon.THUMBS_UP_DOWN.graphic(), e -> {
             if (service.isAuthenticated()) {
                 if (isVotingPossible(session)) {
                     sessionView.setCenter(createVotePane(session));
@@ -220,7 +213,7 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
         } else {
             bottomNavigation.getActionItems().addAll(infoButton, speakerButton, noteButton);
         }
-        
+
         if (DevoxxSettings.conferenceHasVoting(service.getConference())) {
             bottomNavigation.getActionItems().add(voteButton);
         }

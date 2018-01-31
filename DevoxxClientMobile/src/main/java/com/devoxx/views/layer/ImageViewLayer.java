@@ -41,7 +41,6 @@ public class ImageViewLayer extends Layer {
 
     public ImageViewLayer(Image image) {
         this.glassPane = MobileApplication.getInstance().getGlassPane();
-        this.glassPane.getLayers().add(this);
 
         this.image = image;
         this.imageView = new ImageView(image);
@@ -51,7 +50,6 @@ public class ImageViewLayer extends Layer {
         this.imageView.setPreserveRatio(true);
         this.imageView.setOnMouseClicked(e -> {
             hide();
-            dispose();
         });
 
         // if the image is wider than it is tall, then rotate 90 degrees so it displays better on
@@ -59,9 +57,7 @@ public class ImageViewLayer extends Layer {
         configureImageView();
 
         this.getChildren().add(imageView);
-
-        setBackgroundFade(Layer.DEFAULT_BACKGROUND_FADE_LEVEL);
-
+        setBackgroundFade(0.5);
         setAutoHide(true);
     }
 

@@ -29,7 +29,7 @@ import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.BrowserService;
 import com.gluonhq.charm.glisten.control.Avatar;
 import com.gluonhq.charm.glisten.control.Toast;
-import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
+import com.gluonhq.charm.glisten.control.FloatingActionButton;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import com.devoxx.model.Speaker;
 import com.devoxx.util.ImageCache;

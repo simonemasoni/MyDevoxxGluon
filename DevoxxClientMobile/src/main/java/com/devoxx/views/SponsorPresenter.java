@@ -29,7 +29,7 @@ import com.devoxx.DevoxxApplication;
 import com.devoxx.views.helper.Util;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.control.AppBar;
-import com.gluonhq.charm.glisten.layout.layer.FloatingActionButton;
+import com.gluonhq.charm.glisten.control.FloatingActionButton;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.devoxx.DevoxxView;
 import com.devoxx.model.Sponsor;
@@ -71,7 +71,9 @@ public class SponsorPresenter extends GluonPresenter<DevoxxApplication> {
             name.setText(sponsor.getName());
             
             String url = sponsor.getSummary();
-            webLaunchFAB.setVisible(url != null && !url.isEmpty());
+            if (url == null || url.isEmpty()) {
+                webLaunchFAB.hide();
+            }
 
             details.setText(sponsor.getSummary());
             resizeImages();
@@ -90,7 +92,6 @@ public class SponsorPresenter extends GluonPresenter<DevoxxApplication> {
 
     public void initialize() {
         webLaunchFAB = Util.createWebLaunchFAB(() -> getSponsor().getSummary());
-        sponsor.getLayers().add(webLaunchFAB.getLayer());
 
         sponsor.setOnShowing( event -> {
             AppBar appBar = getApp().getAppBar();
