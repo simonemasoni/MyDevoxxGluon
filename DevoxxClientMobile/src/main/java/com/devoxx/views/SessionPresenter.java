@@ -191,10 +191,12 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
         noteButton.setUserData(Pane.NOTE);
 
         final BottomNavigationButton voteButton = new BottomNavigationButton(DevoxxBundle.getString("OTN.BUTTON.VOTE"), MaterialDesignIcon.THUMBS_UP_DOWN.graphic(), e -> {
-            if (service.isAuthenticated()) {
-                if (isVotingPossible(session)) {
-                    sessionView.setCenter(createVotePane(session));
-                } else {
+            /*if (service.isAuthenticated()) {
+                if (isVotingPossible(session)) {*/
+            DevoxxView.VOTE.switchView().ifPresent(vote -> {
+                ((VotePresenter)vote).showVote(session);
+            });
+                /*} else {
                     sessionView.setCenter(new Placeholder(DevoxxBundle.getString("OTN.SESSION.VOTE_TIMING"), MaterialDesignIcon.WARNING));
                 }
             } else {
@@ -204,7 +206,7 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
                         MaterialDesignIcon.THUMBS_UP_DOWN,
                         () -> loadView(session, Pane.VOTE));
                 sessionView.setCenter(loginPromptView);
-            }
+            }*/
         });
         voteButton.setUserData(Pane.VOTE);
 
@@ -214,9 +216,9 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
             bottomNavigation.getActionItems().addAll(infoButton, speakerButton, noteButton);
         }
 
-        if (DevoxxSettings.conferenceHasVoting(service.getConference())) {
-            bottomNavigation.getActionItems().add(voteButton);
-        }
+//        if (DevoxxSettings.conferenceHasVoting(service.getConference())) {
+        bottomNavigation.getActionItems().add(voteButton);
+//        }
 
         infoButton.setSelected(true);
 
@@ -227,7 +229,7 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
         sessionNotesEditor = new SessionNotesEditor(session.getTalk().getId(), service);
         sessionView.setCenter(sessionNotesEditor);
     }
-    
+
     private ObservableList<Speaker> fetchSpeakers(Session activeSession) {
         ObservableList<Speaker> speakers = FXCollections.observableArrayList();
         if (activeSession.getTalk().getSpeakers() != null) {

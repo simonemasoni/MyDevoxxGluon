@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import com.gluonhq.charm.glisten.mvc.View?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.VBox?>
+<?import com.gluonhq.charm.glisten.control.Rating?>
+<?import com.gluonhq.charm.glisten.control.TextField?>
+<?import javafx.scene.control.Button?>
+<View fx:id="vote" styleClass="vote-view" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devoxx.views.VotePresenter">
+    <top>
+        <VBox styleClass="top">
+            <VBox styleClass="details-box">
+                <Label fx:id="title" styleClass="title" wrapText="true" textAlignment="CENTER"/>
+            </VBox>
+            <VBox styleClass="rating-box">
+                <Label fx:id="ratingLabel" styleClass="rating" text="%OTN.VOTE.EXCELLENT"/>
+                <Rating fx:id="rating" rating="4"/>
+            </VBox>
+        </VBox>
+    </top>
+    <center>
+        <VBox styleClass="center">
+            <Label fx:id="compliment" styleClass="compliment" text="%OTN.VOTE.COMPLIMENT"/>
+            <ListView fx:id="comments" styleClass="compliments" orientation="HORIZONTAL"/>
+        </VBox>
+    </center>
+    <bottom>
+        <VBox styleClass="bottom">
+            <TextField fx:id="feedback" promptText="%OTN.VOTE.PROMPT_TEXT"/>
+            <Button styleClass="submit" text="%OTN.VOTE.SUBMIT" onAction="#submit"/>
+        </VBox>
+    </bottom>
+</View>
