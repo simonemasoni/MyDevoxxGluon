@@ -39,29 +39,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 
-import java.util.Arrays;
-
 public class DevoxxSplash extends SplashView { 
 
     public DevoxxSplash() {
         final BorderPane borderPane = new BorderPane();
         borderPane.getStyleClass().add("video-view");
-
-        setOnShown(e -> {
-            Services.get(VideoService.class).ifPresent(video -> {
-                video.setPosition(Pos.CENTER, 0, 10, 0, 10);
-                video.statusProperty().addListener((obs, ov, nv) -> {
-                    if (nv == MediaPlayer.Status.DISPOSED) {
-                        hideSplashView();
-                    }
-                });
-                video.getPlaylist().addAll(Arrays.asList("MyDevoxxIntro.mp4"));
-                // set enough time to have the view ready before playing:
-                PauseTransition delay = new PauseTransition(Duration.seconds(1.2));
-                delay.setOnFinished(d -> video.play());
-                delay.play();
-            });
-        });
 
         Pane pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
@@ -73,6 +55,22 @@ public class DevoxxSplash extends SplashView {
 
         borderPane.setBottom(hBox);
         setCenter(borderPane);
+
+        setOnShown(e -> {
+            Services.get(VideoService.class).ifPresent(video -> {
+                video.setPosition(Pos.CENTER, 0, 10, 0, 10);
+                video.statusProperty().addListener((obs, ov, nv) -> {
+                    if (nv == MediaPlayer.Status.DISPOSED) {
+                        hideSplashView();
+                    }
+                });
+                video.getPlaylist().add("MyDevoxxIntro.mp4");
+                // set enough time to have the view ready before playing:
+                PauseTransition delay = new PauseTransition(Duration.seconds(1.2));
+                delay.setOnFinished(d -> video.play());
+                delay.play();
+            });
+            skip.requestFocus();
+        });
     }
-    
 }
