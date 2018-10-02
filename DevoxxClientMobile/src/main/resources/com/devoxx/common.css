@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, 2017, Gluon Software
+ * Copyright (c) 2016, 2018 Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -31,13 +31,16 @@
 
 .root {
     -fx-font-family: "FakeFontFamily";  /*forces default OS font family selection*/
-    -track-core-platform: #9c27B0;
-    -track-emerging-languages: #8bc24a;
-    -track-cloud-server: #03a9F4;
-    -track-devices: #ff9800;
-    -track-client: #cddc39;
-    -track-devtools: #ff5722;
-    -track-devops-methodologies: #673ab7;
+    -track-color0: #b0233d;
+    -track-color1: #9c27B0;
+    -track-color2: #8bc24a;
+    -track-color3: #03a9F4;
+    -track-color4: #ff9800;
+    -track-color5: #cddc39;
+    -track-color6: #ff5722;
+    -track-color7: #673ab7;
+    -track-color8: #1b67b3;
+    -track-color9: #461eb3;
     -track-unknown: #1b67b3;
     -lighter-black: #212121;
     -carve-badge-border: -alternate-color;
@@ -51,7 +54,7 @@
     -fx-background-color: -primary-swatch-700;
 }
 
-.status-bar:conf {
+.status-bar:voxxed {
     -fx-background-color: #446a83;
 }
 
@@ -64,7 +67,88 @@
 }
 
 .conf-selector-view {
-    -fx-background-color: #363C5A;
+    -fx-background-color: #202122;
+}
+
+.conf-selector-view .headers {
+    -fx-padding: 0.25em 0.583em 0.25em 0.583em;
+}
+
+.conf-selector-view .headers > .header {
+    -fx-font-size: 2em;
+    -fx-text-fill: #27B1DB;
+}
+
+.conf-selector-view .headers > .description {
+    -fx-text-fill: white;
+}
+
+.conference-list-view > .list-view {
+    -fx-background-color: #202122;
+}
+
+.conference-cell,
+.conference-cell:odd,
+.conference-cell:even,
+.conference-cell:focused,
+.conference-cell:filled:selected,
+.conference-cell:filled:selected:focused {
+    -fx-background-color: #202122;
+    -fx-border-width: 0;
+}
+
+.conference-cell .content {
+    -fx-padding: 1em;
+    -fx-pref-height: 200;
+}
+
+.conference-cell .content > .top {
+    -fx-spacing: 0.2em;
+}
+
+.conference-cell .label {
+    -fx-text-fill: white;
+}
+
+.conference-cell .label.type {
+    -fx-text-fill: black;
+    -fx-padding: 0.1em;
+    -fx-font-size: 0.8em;
+    -fx-background-color: -primary-swatch-300;
+}
+
+.conference-cell:voxxed .label.type {
+    -fx-background-color: #27B1DB;
+}
+
+.conference-cell .label.name {
+    -fx-font-size: 1.5em;
+}
+
+.conference-cell .label.date {
+    -fx-font-size: 1.25em;
+}
+
+.conf-selector.popup-view .label {
+    -fx-font-size: 1.25em;
+    -fx-padding: 1em 4em 1em 1em;
+}
+
+/** PastConference Message **/
+.past-conference > .content {
+    -fx-alignment: center-left;
+    -fx-background-color: rgba(0, 0, 0, 0.9);
+    -fx-padding: 0 0 0 1em;
+}
+
+.past-conference > .content > .label {
+    -fx-text-fill: white;
+}
+
+.past-conference > .content > .button,
+.past-conference > .content > .button:hover,
+.past-conference > .content > .button:pressed {
+    -fx-background-color: transparent;
 }
 
 /* use alternate color for bottom border on text input controls */
@@ -86,7 +170,7 @@
 .speaker-cell > .list-tile > .text-box > .primary-text,
 .sponsor-cell > .list-tile > .text-box > .primary-text,
 .exhibitor-cell > .list-tile > .text-box > .primary-text,
-.schedule-cell > .list-tile > .text-box > .primary-text,
+.schedule-cell .list-tile > .text-box > .primary-text,
 .note-cell > .list-tile > .text-box > .primary-text,
 .badge-cell > .list-tile > .text-box > .primary-text {
     -fx-text-fill: -primary-swatch-500;
@@ -98,7 +182,7 @@
 .speaker-cell > .list-tile > .icon-text,
 .sponsor-cell > .list-tile > .icon-text,
 .exhibitor-cell > .list-tile > .icon-text,
-.schedule-cell > .list-tile > * > .icon-text,
+.schedule-cell .list-tile > * > .icon-text,
 .note-cell > .list-tile > .icon-text,
 .badge-cell > .list-tile > .icon-text {
     -fx-text-fill: -alternate-color;
@@ -147,68 +231,150 @@
 
 .list-cell.schedule-cell {
     -fx-padding: 0em;
-    -fx-background-insets: 0em;
+    -fx-background-insets: 0em, 0em 0em 0em 1em;
     -fx-background-color: -track-unknown, white;
 }
 
 .list-cell.schedule-cell:color {
     -fx-background-color: -track-unknown, derive(-fx-control-inner-background,-7%);
 }
-/*.list-cell.schedule-cell:track-core-platform {*/
-    /*-fx-background-color: -track-core-platform, white;*/
-/*}*/
-/*.list-cell.schedule-cell:track-emerging-languages {*/
-    /*-fx-background-color: -track-emerging-languages, white;*/
-/*}*/
-/*.list-cell.schedule-cell:track-cloud-server {*/
-    /*-fx-background-color: -track-cloud-server, white;*/
-/*}*/
-/*.list-cell.schedule-cell:track-devices {*/
-    /*-fx-background-color: -track-devices, white;*/
-/*}*/
-/*.list-cell.schedule-cell:track-client {*/
-    /*-fx-background-color: -track-client, white;*/
-/*}*/
-/*.list-cell.schedule-cell:track-devtools {*/
-    /*-fx-background-color: -track-devtools, white;*/
-/*}*/
-/*.list-cell.schedule-cell:track-devops-methodologies {*/
-    /*-fx-background-color: -track-devops-methodologies, white;*/
-/*}*/
-/*.list-cell.schedule-cell:track-unknown {*/
-    /*-fx-background-color: -track-unknown, white;*/
-/*}*/
 
-.schedule-cell > .list-tile > .text-box {
+.list-cell.schedule-cell:track-color0 {
+    -fx-background-color: -track-color0, white;
+}
+.list-cell.schedule-cell:track-color0:color {
+    -fx-background-color: -track-color0, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color1 {
+    -fx-background-color: -track-color1, white;
+}
+.list-cell.schedule-cell:track-color1:color {
+    -fx-background-color: -track-color1, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color2 {
+     -fx-background-color: -track-color2, white;
+}
+.list-cell.schedule-cell:track-color2:color {
+    -fx-background-color: -track-color2, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color3 {
+     -fx-background-color: -track-color3, white;
+}
+.list-cell.schedule-cell:track-color3:color {
+    -fx-background-color: -track-color3, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color4 {
+     -fx-background-color: -track-color4, white;
+}
+.list-cell.schedule-cell:track-color4:color {
+    -fx-background-color: -track-color4, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color5 {
+     -fx-background-color: -track-color5, white;
+}
+.list-cell.schedule-cell:track-color5:color {
+    -fx-background-color: -track-color5, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color6 {
+     -fx-background-color: -track-color6, white;
+}
+.list-cell.schedule-cell:track-color6:color {
+    -fx-background-color: -track-color6, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color7 {
+     -fx-background-color: -track-color7, white;
+}
+.list-cell.schedule-cell:track-color7:color {
+    -fx-background-color: -track-color7, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color8 {
+     -fx-background-color: -track-color8, white;
+}
+.list-cell.schedule-cell:track-color8:color {
+    -fx-background-color: -track-color8, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color9 {
+    -fx-background-color: -track-color9, white;
+}
+.list-cell.schedule-cell:track-color9:color {
+    -fx-background-color: -track-color9, derive(-fx-control-inner-background,-7%);
+}
+
+.schedule-cell .session-type {
+    -fx-padding: 0.333333em 0em 0.333333em 1.5em;
+    -fx-background-color: -alternate-color;
+}
+
+.schedule-cell .session-type > .label {
+    -fx-text-fill: white;
+    -fx-font-size: 1.1em;
+    -fx-font-weight: 700;
+}
+
+/* Center the primary-graphic in the background color */
+.schedule-cell .list-tile > .primary-graphic {
+    -fx-translate-x: 1px;
+}
+
+.schedule-cell .list-tile > .primary-graphic  > .label {
+    -fx-rotate: -90;
+    -fx-font-size: 0.35em;
+    -fx-text-fill: white;
+    -fx-font-weight: 600;
+}
+
+.schedule-cell .list-tile > .text-box {
     -fx-padding: 0.833333em 0em 0.833333em 0.833333em;
 }
 
-.schedule-cell > .list-tile > .text-box > .secondary-text {
+.schedule-cell .list-tile > .text-box > .secondary-text {
     -fx-text-fill: dimgray;
     -fx-font-size: 1.05em;
     -fx-wrap-text: false;
 }
-.schedule-cell > .list-tile > .text-box > .tertiary-text {
+
+.schedule-cell .list-tile > .text-box > .tertiary-text {
     -fx-text-fill: dimgray;
     -fx-font-size: 0.95em;
 }
 
-.schedule-cell > .list-tile > .text-box > .tertiary-text > .fav-label,
-.schedule-cell > .list-tile > .text-box > .tertiary-text > .fav-label > .fav-graphic {
-    -fx-text-fill: derive(crimson, 50%);
-    -fx-font-size: 0.95em;
+.schedule-cell .list-tile > .text-box > .extra-text {
+    -fx-text-fill: derive(dimgray, 20%);
+    -fx-font-size: 0.90em;
 }
 
-.schedule-cell > .list-tile > .text-box > .tertiary-text > .fav-label {
+.schedule-cell .list-tile > .text-box > .extra-text > .fav-label,
+.schedule-cell .list-tile > .text-box > .tertiary-text > .fav-label {
     -fx-alignment: bottom-left;
     -fx-graphic-text-gap: 1.0;
 }
 
-.schedule-cell > .list-tile > .secondary-graphic {
+.schedule-cell .list-tile > .text-box > .tertiary-text > .fav-label,
+.schedule-cell .list-tile > .text-box > .tertiary-text > .fav-label > .fav-graphic {
+    -fx-text-fill: derive(crimson, 50%);
+    -fx-font-size: 0.95em;
+}
+
+.schedule-cell .list-tile > .text-box > .extra-text > .fav-label,
+.schedule-cell .list-tile > .text-box > .extra-text > .fav-label > .fav-graphic {
+    -fx-text-fill: derive(crimson, 50%);
+    -fx-font-size: 0.90em;
+}
+
+.schedule-cell .list-tile > .secondary-graphic {
     -fx-padding: 0em;
 }
 
-.schedule-cell > .list-tile > .secondary-graphic > .indicator {
+.schedule-cell .list-tile > .secondary-graphic > .indicator {
     -fx-background-color: derive(crimson, 50%);
     -fx-pref-width: 2.5em;
     -fx-pref-height: 2.5em;
@@ -216,14 +382,14 @@
     -fx-scale-shape: true;
 }
 
-.schedule-cell > .list-tile > .secondary-graphic > .indicator > .icon-text {
+.schedule-cell .list-tile > .secondary-graphic > .indicator > .icon-text {
     -fx-text-fill: white;
     -fx-font-size: 1em;
 }
-.schedule-cell > .list-tile > .secondary-graphic > .schedule.indicator > .icon-text {
+.schedule-cell .list-tile > .secondary-graphic > .schedule.indicator > .icon-text {
     -fx-padding: 0.166667em 0.083333em 0.083333em 0.166667em;
 }
-.schedule-cell > .list-tile > .secondary-graphic > .favorite.indicator > .icon-text {
+.schedule-cell .list-tile > .secondary-graphic > .favorite.indicator > .icon-text {
     -fx-padding: 0.166667em 0.166667em 0.083333em 0.166667em;
     -fx-font-size: 0.9em;
 }
@@ -427,6 +593,22 @@
 
 .badge-view {
     -fx-padding: 0.910488em;
+}
+
+.badge-scanner.fab {
+    -fx-graphic: url(images/qrcode-scan.png);
+    -fx-content-display: graphic-only;
+}
+
+.badge-scanner.fab > .image-view {
+    -fx-translate-x: -1.0;
+    -fx-translate-y: -1.0;
+}
+
+/* AppBar MenuItem */
+/* temp fix for  GST-521 */
+.popup-view .menu-item {
+    -fx-wrap-text: false;
 }
 
 /** Sponsor View **/
@@ -817,11 +999,16 @@
 }
 
 .navigation-drawer .primary-title {
+    -fx-wrap-text: true;
     -fx-text-fill: white;
-    -fx-font-size: 3em;
+    -fx-font-size: 2.5em;
     -fx-font-weight: bold;
     -fx-padding: 0em 0em 0.416667em 0.416667em;
     -fx-effect: dropshadow( three-pass-box , rgba(0,0,0,0.6) , 5, 0.0 , 0 , 1 );
+}
+
+.navigation-drawer .primary-title:voxxed {
+    -fx-font-size: 2em;
 }
 
 /* Experiences View */
@@ -998,6 +1185,72 @@
     -fx-text-fill: #333333;
 }
 
+/** DataLabel **/
+.sponsor-view .data-label {
+    -fx-min-height: 32;
+}
+
+.data-label > .progress-indicator {
+    -fx-color: -primary-swatch-500;
+}
+/* Rating Box */
+.review-grid {
+    -fx-padding: 0.2em 0.4em 0.2em 0.4em; 
+    -fx-background-color: #353C5C;
+}
+
+.review-grid > .heading {
+    -fx-text-fill: white;
+    -fx-padding: 0.5em 0 0 0.5em;
+    -fx-font-size: 1.1em;
+    -fx-font-weight: bold;
+}
+
+.review-grid > .logo.image-view {
+    -fx-image: url("images/devoxx-logo.png");
+}
+
+.review-grid > .buttons {
+    -fx-alignment: bottom-right;
+}
+
+.review-grid > .buttons > .button {
+    -fx-text-fill: white;
+    -fx-font-size:1.05em;
+    -fx-padding: 1.5mm 1.5mm 1.92mm 1.92mm;
+}
+
+.review-grid > .buttons > .button.no {
+    -fx-padding: 1.5mm 1.5mm 1.92mm 1.92mm;
+}
+
+/** Feedback View **/
+.feedback {
+    -fx-padding: 1em;
+}
+
+.feedback > .content {
+    -fx-spacing: 0.5em;
+}
+
+.feedback > .content > .charm-text-area {
+    -fx-border-insets: 0.25em 0 0 0;
+}
+
+/* TODO: Remove when GM has TextArea validator styling support */
+.feedback > .content > .charm-text-area > .error {
+    -fx-font-size: 0.75em;
+    -fx-text-fill: #f44336;
+    -fx-padding: 0 0 0 0.65em;
+}
+
+.feedback > .content > .charm-text-area:error {
+    -fx-border-color: #f44336;
+}
+
+.feedback > .content > .charm-text-area:error > .float {
+    -fx-text-fill: #f44336;
+}
 /** Vote View **/
 
 .vote-view > .top > .details-box {
