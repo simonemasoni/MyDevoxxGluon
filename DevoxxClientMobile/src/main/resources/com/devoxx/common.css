@@ -1251,8 +1251,9 @@
 .feedback > .content > .charm-text-area:error > .float {
     -fx-text-fill: #f44336;
 }
-/** Vote View **/
 
+
+/** Vote View **/
 .vote-view > .top > .details-box {
     -fx-alignment: center;
     -fx-padding: 2em;
@@ -1307,6 +1308,16 @@
     -fx-wrap-text: true;
     -fx-text-alignment: center;
     -fx-content-display: top;
+}
+
+.vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell:selected {
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-translate-y: 10;
+}
+
+.vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell:selected > .text {
+    -fx-font-weight: bold;
 }
 
 /* Selected rows */

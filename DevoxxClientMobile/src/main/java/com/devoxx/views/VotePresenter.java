@@ -6,14 +6,13 @@ import com.devoxx.model.Session;
 import com.devoxx.model.Vote;
 import com.devoxx.service.Service;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
-import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.control.Rating;
 import com.gluonhq.charm.glisten.control.TextField;
+import com.gluonhq.charm.glisten.control.Toast;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
@@ -43,7 +42,6 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
     private ObservableList<Comment> compliments = FXCollections.observableArrayList(GoodComment.values());
     private ObservableList<Comment> improvements = FXCollections.observableArrayList(ImprovementComment.values());
 
-
     private Session session;
 
     public void initialize() {
@@ -52,8 +50,9 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
             AppBar appBar = getApp().getAppBar();
             appBar.setTitleText(DevoxxView.VOTE.getTitle());
             appBar.setNavIcon(MaterialDesignIcon.CLEAR.button(e -> {
-                // TODO: Make sure that we switch to INFO Pane
-                MobileApplication.getInstance().switchToPreviousView();
+                DevoxxView.SESSION.switchView().ifPresent(sp -> {
+                    ((SessionPresenter)sp).showSession(session, SessionPresenter.Pane.INFO);
+                });
             }));
         });
 
@@ -70,14 +69,17 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
                 ratingLabel.setText(bundle.getString("OTN.VOTE.EXCELLENT"));
                 compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
                 comments.setItems(compliments);
+                comments.scrollTo(0);
             } else if (rating >= 3) {
                 ratingLabel.setText(bundle.getString("OTN.VOTE.GOOD"));
                 compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
                 comments.setItems(compliments);
+                comments.scrollTo(0);
             } else {
                 ratingLabel.setText(bundle.getString("OTN.VOTE.POOR"));
                 compliment.setText(bundle.getString("OTN.VOTE.IMPROVEMENT"));
                 comments.setItems(improvements);
+                comments.scrollTo(0);
             }
         });
 
@@ -121,7 +123,7 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
         if (length > 0 && length < MINIMUM_CHARACTERS) {
             feedback.requestFocus();
         } else {
-            /*// Submit Vote to Backend
+            // Submit Vote to Backend
             service.voteTalk(createVote(session.getTalk().getId()));
             // Switch to INFO Pane
             DevoxxView.SESSION.switchView().ifPresent(presenter -> {
@@ -130,15 +132,16 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
             });
             // Show Toast
             Toast toast = new Toast(bundle.getString("OTN.VOTEPANE.SUBMIT_VOTE"));
-            toast.show();*/
+            toast.show();
         }
     }
 
     private Vote createVote(String talkId) {
         Vote vote = new Vote(talkId);
-        /*ote.setDelivery(delivery.getText());
-        vote.setContent(content.getText());
-        vote.setOther(other.getText());*/
+        // TODO: Replace with predefined compliment/improvement selected
+        /*vote.setDelivery(delivery.getText());
+        vote.setContent(content.getText());*/
+        vote.setOther(feedback.getText());
         vote.setValue((int) rating.getRating());
         return vote;
     }
@@ -150,8 +153,8 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
 
         public UnselectListCell() {
             imageView = new ImageView();
-            imageView.fitWidthProperty().bind(Bindings.when(selectedProperty()).then(60).otherwise(50));
-            imageView.fitHeightProperty().bind(Bindings.when(selectedProperty()).then(60).otherwise(50));
+            imageView.setFitHeight(50);
+            imageView.setFitWidth(50);
             Platform.runLater(() -> prefWidthProperty().bind(getListView().widthProperty().divide(3.2)));
             addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
                 if (!isEmpty()) {

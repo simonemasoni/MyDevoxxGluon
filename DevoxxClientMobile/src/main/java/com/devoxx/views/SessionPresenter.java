@@ -195,7 +195,10 @@ public class SessionPresenter extends GluonPresenter<DevoxxApplication> {
         final BottomNavigationButton voteButton = new BottomNavigationButton(DevoxxBundle.getString("OTN.BUTTON.VOTE"), MaterialDesignIcon.THUMBS_UP_DOWN.graphic(), e -> {
             if (service.isAuthenticated()) {
                 if (isVotingPossible(session)) {
-                    sessionView.setCenter(createVotePane(session));
+                    // sessionView.setCenter(createVotePane(session));
+                    DevoxxView.VOTE.switchView().ifPresent(votePresenter -> {
+                        ((VotePresenter)votePresenter).showVote(session); 
+                    });
                 } else {
                     sessionView.setCenter(new Placeholder(DevoxxBundle.getString("OTN.SESSION.VOTE_TIMING"), MaterialDesignIcon.WARNING));
                 }
