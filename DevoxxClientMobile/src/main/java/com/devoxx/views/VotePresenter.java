@@ -150,20 +150,31 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
     private class UnselectListCell<T> extends ListCell<T> {
 
         protected final ImageView imageView;
+        private boolean isDrag;
 
         public UnselectListCell() {
             imageView = new ImageView();
             imageView.setFitHeight(50);
             imageView.setFitWidth(50);
             Platform.runLater(() -> prefWidthProperty().bind(getListView().widthProperty().divide(3.2)));
-            addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
-                if (!isEmpty()) {
-                    MultipleSelectionModel<T> selectionModel = getListView().getSelectionModel();
-                    int index = getIndex();
-                    if (selectionModel.getSelectedIndex() == index) {
-                        selectionModel.clearSelection(index);
-                    } else {
-                        selectionModel.select(index);
+            addEventFilter(MouseEvent.MOUSE_ENTERED, event -> {
+                isDrag = false;
+            });
+
+            addEventFilter(MouseEvent.DRAG_DETECTED, event -> {
+                isDrag = true;
+            });
+
+            addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+                if (!isDrag) {
+                    if (!isEmpty()) {
+                        MultipleSelectionModel<T> selectionModel = getListView().getSelectionModel();
+                        int index = getIndex();
+                        if (selectionModel.getSelectedIndex() == index) {
+                            selectionModel.clearSelection(index);
+                        } else {
+                            selectionModel.select(index);
+                        }
                     }
                     event.consume();
                 }
