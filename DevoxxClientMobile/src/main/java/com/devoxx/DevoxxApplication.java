@@ -241,6 +241,9 @@ public class DevoxxApplication extends MobileApplication {
             Services.get(ShareService.class).ifPresent(s -> {
                 File root = Services.get(StorageService.class).flatMap(storage -> storage.getPublicStorage("Documents")).orElse(null);
                 if (root != null) {
+                    if (!root.exists()) {
+                        root.mkdirs();
+                    }
                     File file = new File(root, "Devoxx" + DevoxxCountry.getConfShortName(service.getConference().getCountry()) + "-badges.csv");
                     if (file.exists()) {
                         file.delete();
