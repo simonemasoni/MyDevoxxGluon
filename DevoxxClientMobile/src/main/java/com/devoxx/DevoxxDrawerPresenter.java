@@ -97,12 +97,30 @@ public class DevoxxDrawerPresenter extends GluonPresenter<DevoxxApplication> {
     @PostConstruct
     public void postConstruct() {
         header.text.setText(conferenceNameWithCountry(service.getConference()));
+        if (service.readyProperty().get()) {
+            checkAndUpdateItems();
+        }
+        service.readyProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue) {
+                checkAndUpdateItems();
+            }
+        });
         checkAndAddBadgesItem(service.getConference());
         service.conferenceProperty().addListener((obs, ov, nv) -> {
             header.text.pseudoClassStateChanged(PSEUDO_CLASS_VOXXED, nv.getEventType() == Conference.Type.VOXXED);
             header.text.setText(conferenceNameWithCountry(nv));
             checkAndAddBadgesItem(nv);
         });
+    }
+
+    private void checkAndUpdateItems() {
+        if (service.getConference().getFloorPlans().size() == 0) {
+            drawer.getItems().remove(DevoxxView.EXHIBITION_MAPS.getMenuItem());
+        } else {
+            if (!drawer.getItems().contains(DevoxxView.EXHIBITION_MAPS.getMenuItem())) {
+                drawer.getItems().add(2, DevoxxView.EXHIBITION_MAPS.getMenuItem());
+            }
+        }
     }
 
     private void checkAndAddBadgesItem(Conference conference) {

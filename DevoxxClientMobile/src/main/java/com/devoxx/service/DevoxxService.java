@@ -149,7 +149,6 @@ public class DevoxxService implements Service {
     private ObservableList<Favorite> favorites = FXCollections.observableArrayList();
 
     public DevoxxService() {
-        ready.set(false);
 
         allFavorites = new GluonObservableObject<>();
         allFavorites.setState(ConnectState.SUCCEEDED);
@@ -347,6 +346,7 @@ public class DevoxxService implements Service {
                 .object();
         GluonObservableObject<Conference> conference = fnConference.call(Conference.class);
 
+        ready.set(false);
         if (conference.isInitialized()) {
             setConference(conference.get());
             ready.set(true);
@@ -665,7 +665,6 @@ public class DevoxxService implements Service {
                 findSession(sessionId.getId()).ifPresent(internalFavoredSessions::add);
             }
             internalFavoredSessionsListener = initializeSessionsListener(internalFavoredSessions, "favored");
-            ready.set(true);
             onStateSucceeded.run();
         });
         functionSessions.setOnFailed(e -> LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "favored"), e.getSource().getException()));
@@ -931,8 +930,6 @@ public class DevoxxService implements Service {
             if (DevoxxSettings.conferenceHasFavorite(getConference())) {
                 retrieveFavoredSessions();
             }
-        } else {
-            ready.set(true);
         }
     }
 
@@ -943,7 +940,6 @@ public class DevoxxService implements Service {
         sponsorBadges = null;
         favoredSessions = null;
         internalFavoredSessions.clear();
-        ready.set(false);
 
         Services.get(SettingsService.class).ifPresent(settingsService -> {
             settingsService.remove(DevoxxSettings.SAVED_ACCOUNT_ID);
