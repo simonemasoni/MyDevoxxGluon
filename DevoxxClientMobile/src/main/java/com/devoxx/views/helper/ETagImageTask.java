@@ -45,7 +45,7 @@ import java.util.logging.Logger;
 
 public class ETagImageTask extends Task<Image> {
 
-    private static final String DEVOXX_IMAGE = "_devoxx_image";
+    private static final String DEVOXX_IMAGE = "_devoxx_image2";
     private static final Logger LOGGER = Logger.getLogger(ETagImageTask.class.getName());
 
     private final String url;
