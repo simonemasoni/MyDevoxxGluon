@@ -131,7 +131,7 @@ public class ConfSelectorPresenter extends GluonPresenter<DevoxxApplication> {
         MenuItem voxxed = new MenuItem(Conference.Type.VOXXED.toString());
         MenuItem futureEvents = new MenuItem(bundle.getString("OTN.CONFERENCE_SELECTOR.HEADER.DEVOXX_VOXXED"));
         MenuItem pastEvents = new MenuItem(bundle.getString("OTN.CONFERENCE_SELECTOR.HEADER.PAST_EVENTS"));
-        menu.getItems().addAll(devoxx, voxxed, futureEvents, pastEvents);
+        menu.getItems().addAll(futureEvents, devoxx, voxxed, pastEvents);
         
         devoxx.setOnAction(e -> {
             updateFutureEvent(Conference.Type.DEVOXX);
