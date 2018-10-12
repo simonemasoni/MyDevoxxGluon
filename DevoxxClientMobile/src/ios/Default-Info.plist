@@ -7,7 +7,7 @@
         <key>CFBundleVersion</key>
         <!-- buildnumber --><string>320</string>
         <key>CFBundleShortVersionString</key>
-        <string>3.0.0</string>
+        <string>3.1.0</string>
         <key>CFBundleExecutable</key>
         <string>DevoxxClient</string>
         <key>CFBundleIconName</key>
