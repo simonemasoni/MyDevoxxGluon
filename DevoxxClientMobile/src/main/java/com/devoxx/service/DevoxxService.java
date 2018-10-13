@@ -49,6 +49,7 @@ import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.converter.JsonInputConverter;
+import com.gluonhq.connect.converter.JsonIterableInputConverter;
 import com.gluonhq.connect.provider.DataProvider;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -88,6 +89,7 @@ public class DevoxxService implements Service {
             rootDir = Services.get(StorageService.class)
                     .flatMap(StorageService::getPrivateStorage)
                     .orElseThrow(() -> new IOException("Private storage file not available"));
+            deleteOldFiles(rootDir);
             Services.get(RuntimeArgsService.class).ifPresent(ras -> {
                 ras.addListener(RuntimeArgsService.LAUNCH_PUSH_NOTIFICATION_KEY, (f) -> {
                     LOG.log(Level.INFO, ">>> received a silent push notification with contents: " + f);
@@ -325,12 +327,10 @@ public class DevoxxService implements Service {
     }
     
     @Override
-    public GluonObservableList<Conference> retrieveConferences(Conference.Type type) {
-        RemoteFunctionList fnConferences = RemoteFunctionBuilder.create("conferences")
-                .param("time", "future")
-                .param("type", type.name())
+    public GluonObservableList<Conference> retrieveConferences() {
+        RemoteFunctionList fnConferences = RemoteFunctionBuilder.create("allConferences")
                 .list();
-        final GluonObservableList<Conference> conferences = fnConferences.call(Conference.class);
+        final GluonObservableList<Conference> conferences = fnConferences.call(new JsonIterableInputConverter<>(Conference.class));
         conferences.setOnFailed(e -> LOG.log(Level.WARNING,
                 String.format(REMOTE_FUNCTION_FAILED_MSG, "conferences") + " in retrieveConferences()",
                 e.getSource().getException()));
@@ -978,6 +978,38 @@ public class DevoxxService implements Service {
         }
         catch (NumberFormatException e) {
             return false;
+        }
+    }
+
+    // This piece of code exists to enable backward compatibility and
+    // should be safe to delete after the new version stabilizes
+    private static void deleteOldFiles(File rootDir) {
+        File versionFile = new File(rootDir, DevoxxSettings.VERSION_NO);
+        if (versionFile.exists()) return;
+        File[] files = rootDir.listFiles();
+        if (files != null) {
+            for (File c : files) {
+                delete(c);
+            }
+        }
+        try {
+            versionFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void delete(File f) {
+        if (f.isDirectory()) {
+            File[] files = f.listFiles();
+            if (files != null) {
+                for (File c : files) {
+                    delete(c);
+                }
+            }
+        }
+        if (f.getName().endsWith(".cache") || f.getName().endsWith(".info")) {
+            f.delete();
         }
     }
 }
