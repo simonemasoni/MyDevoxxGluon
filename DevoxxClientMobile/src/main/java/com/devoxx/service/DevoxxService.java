@@ -32,6 +32,7 @@ import com.devoxx.util.DevoxxNotifications;
 import com.devoxx.util.DevoxxSettings;
 import com.devoxx.views.helper.Placeholder;
 import com.devoxx.views.helper.SessionVisuals.SessionListType;
+import com.devoxx.views.helper.Util;
 import com.devoxx.views.layer.ConferenceLoadingLayer;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.RuntimeArgsService;
@@ -65,6 +66,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -75,6 +77,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.devoxx.views.helper.Util.safeStr;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class DevoxxService implements Service {
 
@@ -379,8 +382,12 @@ public class DevoxxService implements Service {
         return Services.get(SettingsService.class).map(ss -> {
             String retrieve = ss.retrieve(getConference().getId() + "_" + DevoxxSettings.RATING);
             if (retrieve == null) {
+                ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(this).getStartDate().minusHours(1);
+                if (DevoxxSettings.NOTIFICATION_TESTS) {
+                    dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
+                }
                 ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), getConference().getConferenceZoneId());
-                if (currentTime.isAfter(findLastSessionOfLastDay().getStartDate().minusHours(1))) {
+                if (currentTime.isAfter(dateTimeRating)) {
                     ss.store(getConference().getId() + "_" + DevoxxSettings.RATING, "SHOW");
                     return true;
                 }
@@ -455,6 +462,7 @@ public class DevoxxService implements Service {
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
             retrieveAuthenticatedUserSessionInformation();
+            addLocalNotification();
         });
 
         sessions.set(sessionsList);
@@ -954,19 +962,6 @@ public class DevoxxService implements Service {
         });
     }
 
-    private Session findLastSessionOfLastDay() {
-        Session lastSession = sessions.get(0);
-        for (Session session : sessions) {
-            if (session.getStartDate().toLocalDate().equals(getConference().getEndDateTime().toLocalDate())) {
-                ZonedDateTime sessionStartTime = session.getStartDate();
-                if (sessionStartTime.isAfter(lastSession.getStartDate())) {
-                    lastSession = session;
-                }
-            }
-        }
-        return lastSession;
-    }
-
     private static ZonedDateTime timeToZonedDateTime(long time, ZoneId zoneId) {
         return ZonedDateTime.ofInstant(Instant.ofEpochMilli(time), zoneId);
     }
@@ -979,6 +974,23 @@ public class DevoxxService implements Service {
         catch (NumberFormatException e) {
             return false;
         }
+    }
+
+    private void addLocalNotification() {
+        Services.get(SettingsService.class).ifPresent(ss -> {
+            String conferenceList = ss.retrieve(DevoxxSettings.LOCAL_NOTIFICATION_RATING);
+            if (conferenceList != null && !conferenceList.isEmpty()) {
+                if (Arrays.asList(conferenceList.split(",")).contains(getConference().getId())) {
+                    return;
+                }
+                conferenceList = conferenceList + "," + getConference().getId();
+            } else {
+                conferenceList = getConference().getId();
+            }
+            DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+            notifications.addRatingNotification(getConference());
+            ss.store(DevoxxSettings.LOCAL_NOTIFICATION_RATING, conferenceList);
+        });
     }
 
     // This piece of code exists to enable backward compatibility and

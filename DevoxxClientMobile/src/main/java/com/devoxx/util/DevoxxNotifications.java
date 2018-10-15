@@ -26,9 +26,11 @@
 package com.devoxx.util;
 
 import com.devoxx.DevoxxView;
+import com.devoxx.model.Conference;
 import com.devoxx.model.Session;
 import com.devoxx.service.Service;
 import com.devoxx.views.SessionPresenter;
+import com.devoxx.views.helper.Util;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.LocalNotificationsService;
 import com.gluonhq.charm.down.plugins.Notification;
@@ -57,7 +59,9 @@ public class DevoxxNotifications {
     
     private static final String ID_START = "START_";
     private static final String ID_VOTE = "VOTE_";
+    private static final String ID_RATE = "RATE_";
 
+    private final static String TITLE_RATE_DEVOXX = DevoxxBundle.getString("OTN.VISUALS.RATE_DEVOXX");
     private final static String TITLE_VOTE_SESSION = DevoxxBundle.getString("OTN.VISUALS.VOTE_NOW");
     private final static String TITLE_SESSION_STARTS = DevoxxBundle.getString("OTN.VISUALS.SESSION_STARTING_SOON");
     private final static int SHOW_VOTE_NOTIFICATION = -2; // show vote notification two minutes before session ends
@@ -104,6 +108,12 @@ public class DevoxxNotifications {
                 notificationsService.ifPresent(n -> n.getNotifications().add(notification));
             });
         }
+    }
+
+    public void addRatingNotification(Conference conference) {
+        createRatingNotification(conference).ifPresent(notification -> {
+            notificationsService.ifPresent(n -> n.getNotifications().add(notification));
+        });
     }
     
     /**
@@ -256,6 +266,31 @@ public class DevoxxNotifications {
         }
         return Optional.empty();
     }
+
+    /**
+     * Creates a notification that will be triggered by the device right before the end of the conference
+     * @param conference Conference for which the notification has to be triggered
+     * @return a notification if the session wasn't added yet and it was already scheduled or
+     * the event is in the future
+     */
+    private Optional<Notification> createRatingNotification(Conference conference) {
+        final ZonedDateTime now = ZonedDateTime.now(conference.getConferenceZoneId());
+
+        // Add notification an hour before the last session begins
+        ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(service).getStartDate().minusHours(1);
+        if (DevoxxSettings.NOTIFICATION_TESTS) {
+            dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
+            if (LOGGING_ENABLED) {
+                LOG.log(Level.INFO, String.format("Rating notification scheduled at: %s", dateTimeRating));
+            }
+        }
+
+        // add the notification if the time is in future
+        if (dateTimeRating.isAfter(now)) {
+            return Optional.of(getRatingNotification(conference, dateTimeRating));
+        }
+        return Optional.empty();
+    }
     
     /**
      * For an already favored session, we create two local notifications.
@@ -362,5 +397,27 @@ public class DevoxxNotifications {
                     });
                 });
     }
-    
+
+    /**
+     * Creates a notification that will be triggered by the device at the end of a conference,
+     * requesting users to vote
+     * @param conference Conference for which the notification is to be scheduled
+     * @param dateTimeRating Zoned date time at which the notification is to be shown.
+     * If null, this notification won't be scheduled on the device
+     * @return a local notification
+     */
+    private Notification getRatingNotification(Conference conference, ZonedDateTime dateTimeRating) {
+        return new Notification(
+            ID_RATE + conference.getId(),
+            TITLE_RATE_DEVOXX,
+            DevoxxBundle.getString("OTN.VISUALS.HELP_US_IMPROVE_DEVOXX"),
+            DevoxxNotifications.class.getResourceAsStream("/icon.png"),
+            dateTimeRating,
+            () -> {
+                if (LOGGING_ENABLED) {
+                    LOG.log(Level.INFO, String.format("Running rating notification %s", conference.getId()));
+                }
+            }
+        );
+    }
 }
