@@ -162,6 +162,8 @@ public class DevoxxNotifications {
      * At this point, we have all the notifications available, and we can remove
      * the listener (so new notifications are not treated as already scheduled) and
      * send them to the Local Notifications service at once
+     *
+     * Only called when user is not-authenticated
      */
     public void preloadingRatingNotificationsDone() {
         if (ratingListener != null) {
@@ -238,6 +240,9 @@ public class DevoxxNotifications {
                 }
             };
             service.retrieveFavoredSessions().addListener(favoriteSessionsListener);
+            // we don't make call to preloadRatingNotifications from DevoxxService#retrieveSessionsInternal
+            // when the user is authenticated and try to fuse the flow with that of FavoriteNotifications
+            preloadRatingNotifications();
         }
     }
 
@@ -267,7 +272,8 @@ public class DevoxxNotifications {
             List<Notification> notificationList = new ArrayList<>();
             notificationList.addAll(startSessionNotificationMap.values());
             notificationList.addAll(voteSessionNotificationMap.values());
-            
+            notificationList.addAll(ratingNotificationMap.values());
+
             if (! notificationList.isEmpty()) {
             
                 // 2. Schedule only real future notifications 
