@@ -77,7 +77,7 @@ public class DevoxxNotifications {
     private Service service;
     
     private final Optional<LocalNotificationsService> notificationsService;
-    private boolean startup;
+    private boolean authenticatedStartup;
     
     public DevoxxNotifications() {
         notificationsService = Services.get(LocalNotificationsService.class);
@@ -141,7 +141,7 @@ public class DevoxxNotifications {
             LOG.log(Level.INFO, "Preload of favored sessions started");
         }
         if (service.isAuthenticated()) { 
-            startup = true;
+            authenticatedStartup = true;
             favoriteSessionsListener = (ListChangeListener.Change<? extends Session> c) -> {
                 while (c.next()) {
                     if (c.wasAdded()) {
@@ -212,7 +212,7 @@ public class DevoxxNotifications {
             
             dummyNotificationMap.clear();
         }
-        startup = false;
+        authenticatedStartup = false;
         if (LOGGING_ENABLED) {
             LOG.log(Level.INFO, "Preload of favored sessions ended");
         }
@@ -226,7 +226,7 @@ public class DevoxxNotifications {
     private Optional<Notification> createStartNotification(Session session) {
         final ZonedDateTime now = ZonedDateTime.now(service.getConference().getConferenceZoneId());
         
-        // Add notification 15 min before session starts or during startup
+        // Add notification 15 min before session starts or during authenticatedStartup
         ZonedDateTime dateTimeStart = session.getStartDate().plusMinutes(SHOW_SESSION_START_NOTIFICATION);
         if (DevoxxSettings.NOTIFICATION_TESTS) {
             dateTimeStart = dateTimeStart.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
@@ -236,7 +236,7 @@ public class DevoxxNotifications {
         }
         
         // add the notification for new ones if they haven't started yet
-        if (dateTimeStart.isAfter(now) || startup) {
+        if (dateTimeStart.isAfter(now) || authenticatedStartup) {
             return Optional.of(getStartNotification(session, dateTimeStart));
         }
         return Optional.empty();
@@ -260,8 +260,8 @@ public class DevoxxNotifications {
             }
         }
         
-        // add the notification if the session hasn't finished yet or during startup
-        if (dateTimeVote.isAfter(now) || startup) {
+        // add the notification if the session hasn't finished yet or during authenticatedStartup
+        if (dateTimeVote.isAfter(now) || authenticatedStartup) {
             return Optional.of(getVoteNotification(session, dateTimeVote));
         }
         return Optional.empty();
@@ -313,7 +313,7 @@ public class DevoxxNotifications {
             dateTimeStart = dateTimeStart.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
         }
         
-        if (dateTimeStart.isAfter(now) || startup) {
+        if (dateTimeStart.isAfter(now) || authenticatedStartup) {
             if (!startSessionNotificationMap.containsKey(sessionId)) {
                 dummyNotificationMap.put(ID_START + sessionId, getStartNotification(session, null));
 
@@ -332,7 +332,7 @@ public class DevoxxNotifications {
         if (DevoxxSettings.NOTIFICATION_TESTS) {
             dateTimeVote = dateTimeVote.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
         }
-        if (dateTimeVote.isAfter(now) || startup) {
+        if (dateTimeVote.isAfter(now) || authenticatedStartup) {
             if (!voteSessionNotificationMap.containsKey(sessionId)) {
                 dummyNotificationMap.put(ID_VOTE + sessionId, getVoteNotification(session, null));
                 
