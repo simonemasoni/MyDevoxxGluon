@@ -6,6 +6,7 @@ import com.devoxx.model.Session;
 import com.devoxx.model.Vote;
 import com.devoxx.service.Service;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
+import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.control.Rating;
 import com.gluonhq.charm.glisten.control.TextField;
@@ -50,8 +51,12 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
             AppBar appBar = getApp().getAppBar();
             appBar.setTitleText(DevoxxView.VOTE.getTitle());
             appBar.setNavIcon(MaterialDesignIcon.CLEAR.button(e -> {
-                DevoxxView.SESSION.switchView().ifPresent(sp -> {
-                    ((SessionPresenter)sp).showSession(session, SessionPresenter.Pane.INFO);
+                MobileApplication.getInstance().switchToPreviousView().ifPresent(view -> {
+                    DevoxxView.getAppView(view).ifPresent(av -> {
+                        av.getPresenter().ifPresent(presenter -> {
+                            ((SessionPresenter)presenter).showSession(session, SessionPresenter.Pane.INFO);
+                        });
+                    });
                 });
             }));
         });
