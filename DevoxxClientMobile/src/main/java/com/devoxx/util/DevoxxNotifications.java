@@ -34,6 +34,7 @@ import com.devoxx.views.helper.Util;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.LocalNotificationsService;
 import com.gluonhq.charm.down.plugins.Notification;
+import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
 
 import javax.inject.Inject;
@@ -69,16 +70,19 @@ public class DevoxxNotifications {
     
     private final Map<String, Notification> startSessionNotificationMap = new HashMap<>();
     private final Map<String, Notification> voteSessionNotificationMap = new HashMap<>();
+    private final Map<String, Notification> ratingNotificationMap = new HashMap<>();
     private final Map<String, Notification> dummyNotificationMap = new HashMap<>();
 
+    private InvalidationListener ratingListener;
     private ListChangeListener<Session> favoriteSessionsListener;
-    
+
     @Inject
     private Service service;
     
     private final Optional<LocalNotificationsService> notificationsService;
+    private boolean startup;
     private boolean authenticatedStartup;
-    
+
     public DevoxxNotifications() {
         notificationsService = Services.get(LocalNotificationsService.class);
     }
@@ -111,9 +115,12 @@ public class DevoxxNotifications {
     }
 
     public void addRatingNotification(Conference conference) {
-        createRatingNotification(conference).ifPresent(notification -> {
-            notificationsService.ifPresent(n -> n.getNotifications().add(notification));
-        });
+        if (!ratingNotificationMap.containsKey(conference.getId())) {
+            createRatingNotification(conference).ifPresent(notification -> {
+                ratingNotificationMap.put(conference.getId(), notification);
+                notificationsService.ifPresent(n -> n.getNotifications().add(notification));
+            });
+        }
     }
     
     /**
@@ -129,6 +136,82 @@ public class DevoxxNotifications {
         final Notification voteNotification = voteSessionNotificationMap.remove(session.getTalk().getId());
         if (voteNotification != null) { 
             notificationsService.ifPresent(n -> n.getNotifications().remove(voteNotification));
+        }
+    }
+
+    /**
+     * Called when the application starts, allows retrieving the rating
+     * notifications, and restoring the notifications map
+     */
+    public void preloadRatingNotifications() {
+        if (LOGGING_ENABLED) {
+            LOG.log(Level.INFO, "Preload of rating notifications started");
+        }
+        startup = true;
+        ratingListener = observable -> {
+            if (service.retrieveSessions().size() > 0) {
+                addAlreadyRatingNotifications();
+                service.retrieveSessions().removeListener(ratingListener);
+            }
+        };
+        service.retrieveSessions().addListener(ratingListener);
+    }
+
+    /**
+     * Called after the application has started and pre-loading ends.
+     * At this point, we have all the notifications available, and we can remove
+     * the listener (so new notifications are not treated as already scheduled) and
+     * send them to the Local Notifications service at once
+     */
+    public void preloadingRatingNotificationsDone() {
+        if (ratingListener != null) {
+            service.retrieveSessions().removeListener(ratingListener);
+            ratingListener = null;
+
+            if (! dummyNotificationMap.isEmpty()) {
+
+                // 1. Add all dummy notifications to the notification map at once.
+                // These need to be present all the time (as notifications will
+                // be opened always some time after they were delivered).
+                // Adding these dummy notifications doesn't schedule them on the
+                // device and it doesn't cause duplicate exceptions
+                notificationsService.ifPresent(ns ->
+                        ns.getNotifications().addAll(dummyNotificationMap.values()));
+            }
+
+            // process notifications at once
+            List<Notification> notificationList = new ArrayList<>(ratingNotificationMap.values());
+
+            if (! notificationList.isEmpty()) {
+
+                // 2. Schedule only real future notifications
+                final ZonedDateTime now = ZonedDateTime.now(service.getConference().getConferenceZoneId());
+                notificationsService.ifPresent(ns -> {
+                    for (Notification n : notificationList) {
+                        if (n.getDateTime() != null && n.getDateTime().isAfter(now)) {
+                            // Remove notification before scheduling it again,
+                            // to avoid duplicate exception
+                            final Notification dummyN = dummyNotificationMap.get(n.getId());
+                            if (dummyN != null) {
+                                if (LOGGING_ENABLED) {
+                                    LOG.log(Level.INFO, String.format("Removing notification %s", n.getId()));
+                                }
+                                ns.getNotifications().remove(dummyN);
+                            }
+                            if (LOGGING_ENABLED) {
+                                LOG.log(Level.INFO, String.format("Adding rating notification %s", n.getId()));
+                            }
+                            ns.getNotifications().add(n);
+                        }
+                    }
+                });
+            }
+
+            dummyNotificationMap.clear();
+        }
+        startup = false;
+        if (LOGGING_ENABLED) {
+            LOG.log(Level.INFO, "Preload of rating notifications ended");
         }
     }
     
@@ -157,7 +240,7 @@ public class DevoxxNotifications {
             service.retrieveFavoredSessions().addListener(favoriteSessionsListener);
         }
     }
-    
+
     /**
      * Called after the application has started and pre-loading the favored sessions
      * ends. At this point, we have all the notifications available, and we can remove
@@ -285,8 +368,8 @@ public class DevoxxNotifications {
             }
         }
 
-        // add the notification if the time is in future
-        if (dateTimeRating.isAfter(now)) {
+        // add the notification if the time is in future or is startup is true
+        if (dateTimeRating.isAfter(now) || startup) {
             return Optional.of(getRatingNotification(conference, dateTimeRating));
         }
         return Optional.empty();
@@ -341,6 +424,31 @@ public class DevoxxNotifications {
                         LOG.log(Level.INFO, String.format("Adding vote notification %s", n.getId()));
                     }
                     voteSessionNotificationMap.put(sessionId, n);
+                });
+            }
+        }
+    }
+
+    private void addAlreadyRatingNotifications() {
+        final Conference conference = service.getConference();
+
+        final ZonedDateTime now = ZonedDateTime.now(service.getConference().getConferenceZoneId());
+        // Add notification an hour before the last session begins
+        ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(service).getStartDate().minusHours(1);
+        if (DevoxxSettings.NOTIFICATION_TESTS) {
+            dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
+        }
+
+        // add the notification if the time is in future
+        if (dateTimeRating.isAfter(now)  || startup) {
+            if (!ratingNotificationMap.containsKey(conference.getId())) {
+                dummyNotificationMap.put(ID_RATE + conference.getId(), getRatingNotification(conference, null));
+
+                createRatingNotification(conference).ifPresent(n -> {
+                    if (LOGGING_ENABLED) {
+                        LOG.log(Level.INFO, String.format("Adding rating notification %s", n.getId()));
+                    }
+                    ratingNotificationMap.put(conference.getId(), n);
                 });
             }
         }
@@ -400,7 +508,7 @@ public class DevoxxNotifications {
 
     /**
      * Creates a notification that will be triggered by the device at the end of a conference,
-     * requesting users to vote
+     * requesting users to rate for the app
      * @param conference Conference for which the notification is to be scheduled
      * @param dateTimeRating Zoned date time at which the notification is to be shown.
      * If null, this notification won't be scheduled on the device
@@ -417,6 +525,7 @@ public class DevoxxNotifications {
                 if (LOGGING_ENABLED) {
                     LOG.log(Level.INFO, String.format("Running rating notification %s", conference.getId()));
                 }
+                DevoxxView.SESSIONS.switchView();
             }
         );
     }

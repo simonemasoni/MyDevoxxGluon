@@ -386,7 +386,7 @@ public class DevoxxService implements Service {
                 if (DevoxxSettings.NOTIFICATION_TESTS) {
                     dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
                 }
-                ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), getConference().getConferenceZoneId());
+                ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
                 if (currentTime.isAfter(dateTimeRating)) {
                     ss.store(getConference().getId() + "_" + DevoxxSettings.RATING, "SHOW");
                     return true;
@@ -452,6 +452,10 @@ public class DevoxxService implements Service {
             }
         };
         sessionsList.addListener(sessionsListChangeListener);
+
+        DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+        notifications.preloadRatingNotifications();
+
         sessionsList.setOnFailed(e -> {
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
@@ -462,6 +466,7 @@ public class DevoxxService implements Service {
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
             retrieveAuthenticatedUserSessionInformation();
+            notifications.preloadingRatingNotificationsDone();
             addLocalNotification();
         });
 
@@ -581,7 +586,7 @@ public class DevoxxService implements Service {
 
     private void retrieveSessionTypesInternal() {
         if (getConference() != null && getConference().getSessionTypes() != null) {
-            Set<String> dedup = new HashSet();
+            Set<String> dedup = new HashSet<>();
             List<SessionType> types = new LinkedList<>();
             for(SessionType t : getConference().getSessionTypes()) {
                 if (!dedup.contains(t.getName())) {
