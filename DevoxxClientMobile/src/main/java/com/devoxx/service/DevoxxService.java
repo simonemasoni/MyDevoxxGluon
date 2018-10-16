@@ -131,6 +131,7 @@ public class DevoxxService implements Service {
      */
     private final ReadOnlyListWrapper<Session> sessions = new ReadOnlyListWrapper<>(FXCollections.observableArrayList());
     private final AtomicBoolean retrievingSessions = new AtomicBoolean(false);
+    private final AtomicBoolean retrievingFavoriteSessions = new AtomicBoolean(false);
 
     private final ReadOnlyListWrapper<Speaker> speakers = new ReadOnlyListWrapper<>(FXCollections.observableArrayList());
     private final AtomicBoolean retrievingSpeakers = new AtomicBoolean(false);
@@ -468,9 +469,7 @@ public class DevoxxService implements Service {
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
             retrieveAuthenticatedUserSessionInformation();
-            if (!isAuthenticated()) {
-                notifications.preloadingRatingNotificationsDone();
-            }
+            finishNotificationsPreloading();
             addLocalNotification();
         });
 
@@ -657,7 +656,7 @@ public class DevoxxService implements Service {
             try {
                 DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
                 // stop recreating notifications, after the list of scheduled sessions is fully retrieved
-                favoredSessions = internalRetrieveFavoredSessions(notifications::preloadingFavoriteSessionsDone);
+                favoredSessions = internalRetrieveFavoredSessions();
                 // start recreating notifications as soon as the scheduled sessions are being retrieved
                 notifications.preloadFavoriteSessions();
             } catch (IllegalStateException ise) {
@@ -668,10 +667,12 @@ public class DevoxxService implements Service {
         return favoredSessions;
     }
 
-    private ObservableList<Session> internalRetrieveFavoredSessions(Runnable onStateSucceeded) {
+    private ObservableList<Session> internalRetrieveFavoredSessions() {
         if (!isAuthenticated()) {
             throw new IllegalStateException("An authenticated user that was verified at Devoxx CFP must be available when calling this method.");
         }
+
+        retrievingFavoriteSessions.set(true);
 
         RemoteFunctionObject fnFavored = RemoteFunctionBuilder.create("favored")
                 .param("0", getCfpURL())
@@ -680,14 +681,19 @@ public class DevoxxService implements Service {
 
         GluonObservableObject<Favored> functionSessions = fnFavored.call(Favored.class);
         functionSessions.setOnSucceeded(e -> {
+
             for (SessionId sessionId : functionSessions.get().getFavored()) {
                 findSession(sessionId.getId()).ifPresent(internalFavoredSessions::add);
             }
             internalFavoredSessionsListener = initializeSessionsListener(internalFavoredSessions, "favored");
             ready.set(true);
-            onStateSucceeded.run();
+            retrievingFavoriteSessions.set(false);
+            finishNotificationsPreloading();
         });
-        functionSessions.setOnFailed(e -> LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "favored"), e.getSource().getException()));
+        functionSessions.setOnFailed(e -> {
+            LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "favored"), e.getSource().getException());
+            retrievingFavoriteSessions.set(false);
+        });
 
         return internalFavoredSessions;
     }
@@ -1000,6 +1006,13 @@ public class DevoxxService implements Service {
             notifications.addRatingNotification(getConference());
             ss.store(DevoxxSettings.LOCAL_NOTIFICATION_RATING, conferenceList);
         });
+    }
+
+    private void finishNotificationsPreloading() {
+        if (!retrievingSessions.get() && !retrievingFavoriteSessions.get()) {
+            DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+            notifications.preloadingNotificationsDone();
+        }
     }
 
     // This piece of code exists to enable backward compatibility and
