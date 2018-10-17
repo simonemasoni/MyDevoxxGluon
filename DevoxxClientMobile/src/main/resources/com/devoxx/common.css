@@ -1289,7 +1289,7 @@
 .vote-view > .center {
     -fx-alignment: center;
     -fx-spacing: 1em;
-    -fx-padding: 2em 0 2em 0;
+    -fx-padding: 1em 0 1em 0;
 }
 
 .vote-view > .center > .compliment {
@@ -1297,6 +1297,7 @@
 }
 
 .vote-view > .center > .compliments {
+    -fx-min-height: 110px;
     -fx-pref-height: 200px;
 }
 
@@ -1332,11 +1333,11 @@
 .vote-view > .bottom {
     -fx-alignment: bottom-center;
     -fx-spacing: 0.5em;
-    -fx-padding: 2em;
+    -fx-padding: 1em 2em 1em 2em;
 }
 
-.vote-view > .bottom > .text-field {
-
+.vote-view > .bottom > .charm-text-area > .text-area {
+    -fx-pref-height: 140px;
 }
 
 .vote-view > .bottom > .submit {

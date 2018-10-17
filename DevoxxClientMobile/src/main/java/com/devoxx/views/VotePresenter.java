@@ -9,7 +9,7 @@ import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.control.Rating;
-import com.gluonhq.charm.glisten.control.TextField;
+import com.gluonhq.charm.glisten.control.TextArea;
 import com.gluonhq.charm.glisten.control.Toast;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
@@ -17,7 +17,11 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.control.MultipleSelectionModel;
+import javafx.scene.control.SelectionMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -36,7 +40,7 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
     @FXML private Rating rating;
     @FXML private Label compliment;
     @FXML private ListView<Comment> comments;
-    @FXML private TextField feedback;
+    @FXML private TextArea feedback;
 
     @Inject private Service service;
 
