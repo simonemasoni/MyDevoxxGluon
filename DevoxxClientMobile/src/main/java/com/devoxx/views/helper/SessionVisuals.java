@@ -219,7 +219,7 @@ public class SessionVisuals {
     private ObservableList<Session> getList(SessionListType listType) {
         if (usingOfflineEmptyLists && service.isAuthenticated()) {
             // OTN-513 - First time user logs in: stop the listener
-            devoxxNotifications.preloadingFavoriteSessionsDone();
+            devoxxNotifications.preloadingNotificationsDone();
             
             retrieveLists();
         }
