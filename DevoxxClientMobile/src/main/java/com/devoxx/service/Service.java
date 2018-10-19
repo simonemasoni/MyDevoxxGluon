@@ -187,8 +187,8 @@ public interface Service {
     boolean isAuthenticated();
     
     /**
-     * The ready property can be set to true when the service has finished loading some resources.
-     * This can be used by the wearable service to add listeners and perform some actions
+     * The ready property is set to true when the service has finished loading conference details
+     * once a new conference is selected from the conference selector.
      * @return a boolean property
      */
     BooleanProperty readyProperty();
