@@ -32,6 +32,7 @@ import com.devoxx.util.DevoxxNotifications;
 import com.devoxx.util.DevoxxSettings;
 import com.devoxx.views.helper.Placeholder;
 import com.devoxx.views.helper.SessionVisuals.SessionListType;
+import com.devoxx.views.helper.Util;
 import com.devoxx.views.layer.ConferenceLoadingLayer;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.RuntimeArgsService;
@@ -65,6 +66,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -75,6 +77,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.devoxx.views.helper.Util.safeStr;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class DevoxxService implements Service {
 
@@ -128,6 +131,7 @@ public class DevoxxService implements Service {
      */
     private final ReadOnlyListWrapper<Session> sessions = new ReadOnlyListWrapper<>(FXCollections.observableArrayList());
     private final AtomicBoolean retrievingSessions = new AtomicBoolean(false);
+    private final AtomicBoolean retrievingFavoriteSessions = new AtomicBoolean(false);
 
     private final ReadOnlyListWrapper<Speaker> speakers = new ReadOnlyListWrapper<>(FXCollections.observableArrayList());
     private final AtomicBoolean retrievingSpeakers = new AtomicBoolean(false);
@@ -379,8 +383,12 @@ public class DevoxxService implements Service {
         return Services.get(SettingsService.class).map(ss -> {
             String retrieve = ss.retrieve(getConference().getId() + "_" + DevoxxSettings.RATING);
             if (retrieve == null) {
-                ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), getConference().getConferenceZoneId());
-                if (currentTime.isAfter(findLastSessionOfLastDay().getStartDate().minusHours(1))) {
+                ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(this).getStartDate().minusHours(1);
+                if (DevoxxSettings.NOTIFICATION_TESTS) {
+                    dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
+                }
+                ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+                if (currentTime.isAfter(dateTimeRating)) {
                     ss.store(getConference().getId() + "_" + DevoxxSettings.RATING, "SHOW");
                     return true;
                 }
@@ -445,6 +453,12 @@ public class DevoxxService implements Service {
             }
         };
         sessionsList.addListener(sessionsListChangeListener);
+
+        DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+        if (!isAuthenticated()) {
+            notifications.preloadRatingNotifications();
+        }
+
         sessionsList.setOnFailed(e -> {
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
@@ -455,6 +469,8 @@ public class DevoxxService implements Service {
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
             retrieveAuthenticatedUserSessionInformation();
+            finishNotificationsPreloading();
+            addLocalNotification();
         });
 
         sessions.set(sessionsList);
@@ -573,7 +589,7 @@ public class DevoxxService implements Service {
 
     private void retrieveSessionTypesInternal() {
         if (getConference() != null && getConference().getSessionTypes() != null) {
-            Set<String> dedup = new HashSet();
+            Set<String> dedup = new HashSet<>();
             List<SessionType> types = new LinkedList<>();
             for(SessionType t : getConference().getSessionTypes()) {
                 if (!dedup.contains(t.getName())) {
@@ -640,7 +656,7 @@ public class DevoxxService implements Service {
             try {
                 DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
                 // stop recreating notifications, after the list of scheduled sessions is fully retrieved
-                favoredSessions = internalRetrieveFavoredSessions(notifications::preloadingFavoriteSessionsDone);
+                favoredSessions = internalRetrieveFavoredSessions();
                 // start recreating notifications as soon as the scheduled sessions are being retrieved
                 notifications.preloadFavoriteSessions();
             } catch (IllegalStateException ise) {
@@ -651,10 +667,12 @@ public class DevoxxService implements Service {
         return favoredSessions;
     }
 
-    private ObservableList<Session> internalRetrieveFavoredSessions(Runnable onStateSucceeded) {
+    private ObservableList<Session> internalRetrieveFavoredSessions() {
         if (!isAuthenticated()) {
             throw new IllegalStateException("An authenticated user that was verified at Devoxx CFP must be available when calling this method.");
         }
+
+        retrievingFavoriteSessions.set(true);
 
         RemoteFunctionObject fnFavored = RemoteFunctionBuilder.create("favored")
                 .param("0", getCfpURL())
@@ -663,14 +681,19 @@ public class DevoxxService implements Service {
 
         GluonObservableObject<Favored> functionSessions = fnFavored.call(Favored.class);
         functionSessions.setOnSucceeded(e -> {
+
             for (SessionId sessionId : functionSessions.get().getFavored()) {
                 findSession(sessionId.getId()).ifPresent(internalFavoredSessions::add);
             }
             internalFavoredSessionsListener = initializeSessionsListener(internalFavoredSessions, "favored");
             ready.set(true);
-            onStateSucceeded.run();
+            retrievingFavoriteSessions.set(false);
+            finishNotificationsPreloading();
         });
-        functionSessions.setOnFailed(e -> LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "favored"), e.getSource().getException()));
+        functionSessions.setOnFailed(e -> {
+            LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "favored"), e.getSource().getException());
+            retrievingFavoriteSessions.set(false);
+        });
 
         return internalFavoredSessions;
     }
@@ -954,19 +977,6 @@ public class DevoxxService implements Service {
         });
     }
 
-    private Session findLastSessionOfLastDay() {
-        Session lastSession = sessions.get(0);
-        for (Session session : sessions) {
-            if (session.getStartDate().toLocalDate().equals(getConference().getEndDateTime().toLocalDate())) {
-                ZonedDateTime sessionStartTime = session.getStartDate();
-                if (sessionStartTime.isAfter(lastSession.getStartDate())) {
-                    lastSession = session;
-                }
-            }
-        }
-        return lastSession;
-    }
-
     private static ZonedDateTime timeToZonedDateTime(long time, ZoneId zoneId) {
         return ZonedDateTime.ofInstant(Instant.ofEpochMilli(time), zoneId);
     }
@@ -978,6 +988,30 @@ public class DevoxxService implements Service {
         }
         catch (NumberFormatException e) {
             return false;
+        }
+    }
+
+    private void addLocalNotification() {
+        Services.get(SettingsService.class).ifPresent(ss -> {
+            String conferenceList = ss.retrieve(DevoxxSettings.LOCAL_NOTIFICATION_RATING);
+            if (conferenceList != null && !conferenceList.isEmpty()) {
+                if (Arrays.asList(conferenceList.split(",")).contains(getConference().getId())) {
+                    return;
+                }
+                conferenceList = conferenceList + "," + getConference().getId();
+            } else {
+                conferenceList = getConference().getId();
+            }
+            DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+            notifications.addRatingNotification(getConference());
+            ss.store(DevoxxSettings.LOCAL_NOTIFICATION_RATING, conferenceList);
+        });
+    }
+
+    private void finishNotificationsPreloading() {
+        if (!retrievingSessions.get() && !retrievingFavoriteSessions.get()) {
+            DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+            notifications.preloadingNotificationsDone();
         }
     }
 
