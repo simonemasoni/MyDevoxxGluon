@@ -918,8 +918,7 @@
 .coffee-view .submit-button,
 .carve-badge .submit-button,
 .game-view .submit-button,
-.embroider-view .submit-button,
-.vote-view .submit-button {
+.embroider-view .submit-button {
     -fx-background-color: -alternate-color;
     -fx-font-size: 1.2em;
 }

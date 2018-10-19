@@ -5,7 +5,6 @@
 <?import javafx.scene.layout.VBox?>
 <?import com.gluonhq.charm.glisten.control.Rating?>
 <?import com.gluonhq.charm.glisten.control.TextArea?>
-<?import javafx.scene.control.Button?>
 <View fx:id="vote" styleClass="vote-view" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.devoxx.views.VotePresenter">
     <top>
         <VBox styleClass="top">
@@ -26,8 +25,7 @@
     </center>
     <bottom>
         <VBox styleClass="bottom">
-            <TextArea fx:id="feedback" promptText="%OTN.VOTE.PROMPT_TEXT"/>
-            <Button styleClass="submit" text="%OTN.VOTE.SUBMIT" onAction="#submit"/>
+            <TextArea fx:id="feedback" promptText="%OTN.VOTE.PROMPT_TEXT" VBox.vgrow="ALWAYS"/>
         </VBox>
     </bottom>
 </View>

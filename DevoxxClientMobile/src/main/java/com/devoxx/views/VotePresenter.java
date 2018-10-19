@@ -5,6 +5,7 @@ import com.devoxx.DevoxxView;
 import com.devoxx.model.Session;
 import com.devoxx.model.Vote;
 import com.devoxx.service.Service;
+import com.devoxx.util.DevoxxBundle;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.AppBar;
@@ -62,6 +63,9 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
                         });
                     });
                 });
+            }));
+            appBar.getActionItems().setAll(MaterialDesignIcon.SEND.button(e -> {
+                submit();
             }));
         });
 
@@ -135,12 +139,15 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
             // Submit Vote to Backend
             service.voteTalk(createVote(session.getTalk().getId()));
             // Switch to INFO Pane
-            DevoxxView.SESSION.switchView().ifPresent(presenter -> {
-                SessionPresenter sessionPresenter = (SessionPresenter) presenter;
-                sessionPresenter.showSession(session, SessionPresenter.Pane.INFO);
+            MobileApplication.getInstance().switchToPreviousView().ifPresent(view -> {
+                DevoxxView.getAppView(view).ifPresent(av -> {
+                    av.getPresenter().ifPresent(presenter -> {
+                        ((SessionPresenter)presenter).showSession(session, SessionPresenter.Pane.INFO);
+                    });
+                });
             });
             // Show Toast
-            Toast toast = new Toast(bundle.getString("OTN.VOTEPANE.SUBMIT_VOTE"));
+            Toast toast = new Toast(DevoxxBundle.getString("OTN.VOTEPANE.SUBMIT_VOTE"));
             toast.show();
         }
     }
