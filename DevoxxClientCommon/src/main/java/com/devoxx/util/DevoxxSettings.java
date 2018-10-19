@@ -34,7 +34,7 @@ import java.time.format.FormatStyle;
 import java.util.*;
 
 public class DevoxxSettings {
-    public static final String BUILD_NUMBER = "320"           ;
+    public static final String BUILD_NUMBER = "323"              ;
 
     /**
      * boolean option to switch on/off automatic authentication by using a self generated random UUID
@@ -117,6 +117,8 @@ public class DevoxxSettings {
     public static final String BADGE_SPONSOR = "badge-sponsor";
     public static final String RELOAD = "reload";
     public static final String RATING = "rating";
+    public static final String LOCAL_NOTIFICATION_RATING = "local_notification_rating";
+    public static final String VERSION_NO = "version_3_0_0";
 
     private static final String WEARABLE_DAY_PATTERN  = "MMMM dd, uuuu";
     private static final String TIME_PATTERN = "h:mma";

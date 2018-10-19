@@ -32,6 +32,7 @@ import com.devoxx.util.DevoxxNotifications;
 import com.devoxx.util.DevoxxSettings;
 import com.devoxx.views.helper.Placeholder;
 import com.devoxx.views.helper.SessionVisuals.SessionListType;
+import com.devoxx.views.helper.Util;
 import com.devoxx.views.layer.ConferenceLoadingLayer;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.RuntimeArgsService;
@@ -49,6 +50,7 @@ import com.gluonhq.connect.ConnectState;
 import com.gluonhq.connect.GluonObservableList;
 import com.gluonhq.connect.GluonObservableObject;
 import com.gluonhq.connect.converter.JsonInputConverter;
+import com.gluonhq.connect.converter.JsonIterableInputConverter;
 import com.gluonhq.connect.provider.DataProvider;
 import javafx.beans.property.*;
 import javafx.collections.FXCollections;
@@ -57,26 +59,25 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.scene.control.Button;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 import java.io.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.devoxx.views.helper.Util.safeStr;
+import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class DevoxxService implements Service {
 
@@ -91,6 +92,7 @@ public class DevoxxService implements Service {
             rootDir = Services.get(StorageService.class)
                     .flatMap(StorageService::getPrivateStorage)
                     .orElseThrow(() -> new IOException("Private storage file not available"));
+            deleteOldFiles(rootDir);
             Services.get(RuntimeArgsService.class).ifPresent(ras -> {
                 ras.addListener(RuntimeArgsService.LAUNCH_PUSH_NOTIFICATION_KEY, (f) -> {
                     LOG.log(Level.INFO, ">>> received a silent push notification with contents: " + f);
@@ -129,6 +131,7 @@ public class DevoxxService implements Service {
      */
     private final ReadOnlyListWrapper<Session> sessions = new ReadOnlyListWrapper<>(FXCollections.observableArrayList());
     private final AtomicBoolean retrievingSessions = new AtomicBoolean(false);
+    private final AtomicBoolean retrievingFavoriteSessions = new AtomicBoolean(false);
 
     private final ReadOnlyListWrapper<Speaker> speakers = new ReadOnlyListWrapper<>(FXCollections.observableArrayList());
     private final AtomicBoolean retrievingSpeakers = new AtomicBoolean(false);
@@ -327,12 +330,10 @@ public class DevoxxService implements Service {
     }
     
     @Override
-    public GluonObservableList<Conference> retrieveConferences(Conference.Type type) {
-        RemoteFunctionList fnConferences = RemoteFunctionBuilder.create("conferences")
-                .param("time", "future")
-                .param("type", type.name())
+    public GluonObservableList<Conference> retrieveConferences() {
+        RemoteFunctionList fnConferences = RemoteFunctionBuilder.create("allConferences")
                 .list();
-        final GluonObservableList<Conference> conferences = fnConferences.call(Conference.class);
+        final GluonObservableList<Conference> conferences = fnConferences.call(new JsonIterableInputConverter<>(Conference.class));
         conferences.setOnFailed(e -> LOG.log(Level.WARNING,
                 String.format(REMOTE_FUNCTION_FAILED_MSG, "conferences") + " in retrieveConferences()",
                 e.getSource().getException()));
@@ -378,15 +379,24 @@ public class DevoxxService implements Service {
 
     @Override
     public boolean showRatingDialog() {
-        if (rootDir != null) {
-            File rating = new File(rootDir, DevoxxSettings.RATING);
-            LOG.log(Level.INFO, "Rating requested? " + rating.exists());
-            if (rating.exists()) {
-                rating.delete();
+        if (getConference() == null) return false;
+        return Services.get(SettingsService.class).map(ss -> {
+            String retrieve = ss.retrieve(getConference().getId() + "_" + DevoxxSettings.RATING);
+            if (retrieve == null) {
+                ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(this).getStartDate().minusHours(1);
+                if (DevoxxSettings.NOTIFICATION_TESTS) {
+                    dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
+                }
+                ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+                if (currentTime.isAfter(dateTimeRating)) {
+                    ss.store(getConference().getId() + "_" + DevoxxSettings.RATING, "SHOW");
+                    return true;
+                }
+            } else if (retrieve.equalsIgnoreCase("SHOW")) {
                 return true;
             }
-        }
-        return false;
+            return false;
+        }).orElse(false);
     }
 
     @Override
@@ -443,6 +453,12 @@ public class DevoxxService implements Service {
             }
         };
         sessionsList.addListener(sessionsListChangeListener);
+
+        DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+        if (!isAuthenticated()) {
+            notifications.preloadRatingNotifications();
+        }
+
         sessionsList.setOnFailed(e -> {
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
@@ -453,6 +469,8 @@ public class DevoxxService implements Service {
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
             retrieveAuthenticatedUserSessionInformation();
+            finishNotificationsPreloading();
+            addLocalNotification();
         });
 
         sessions.set(sessionsList);
@@ -571,7 +589,7 @@ public class DevoxxService implements Service {
 
     private void retrieveSessionTypesInternal() {
         if (getConference() != null && getConference().getSessionTypes() != null) {
-            Set<String> dedup = new HashSet();
+            Set<String> dedup = new HashSet<>();
             List<SessionType> types = new LinkedList<>();
             for(SessionType t : getConference().getSessionTypes()) {
                 if (!dedup.contains(t.getName())) {
@@ -638,7 +656,7 @@ public class DevoxxService implements Service {
             try {
                 DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
                 // stop recreating notifications, after the list of scheduled sessions is fully retrieved
-                favoredSessions = internalRetrieveFavoredSessions(notifications::preloadingFavoriteSessionsDone);
+                favoredSessions = internalRetrieveFavoredSessions();
                 // start recreating notifications as soon as the scheduled sessions are being retrieved
                 notifications.preloadFavoriteSessions();
             } catch (IllegalStateException ise) {
@@ -649,10 +667,12 @@ public class DevoxxService implements Service {
         return favoredSessions;
     }
 
-    private ObservableList<Session> internalRetrieveFavoredSessions(Runnable onStateSucceeded) {
+    private ObservableList<Session> internalRetrieveFavoredSessions() {
         if (!isAuthenticated()) {
             throw new IllegalStateException("An authenticated user that was verified at Devoxx CFP must be available when calling this method.");
         }
+
+        retrievingFavoriteSessions.set(true);
 
         RemoteFunctionObject fnFavored = RemoteFunctionBuilder.create("favored")
                 .param("0", getCfpURL())
@@ -661,13 +681,19 @@ public class DevoxxService implements Service {
 
         GluonObservableObject<Favored> functionSessions = fnFavored.call(Favored.class);
         functionSessions.setOnSucceeded(e -> {
+
             for (SessionId sessionId : functionSessions.get().getFavored()) {
                 findSession(sessionId.getId()).ifPresent(internalFavoredSessions::add);
             }
             internalFavoredSessionsListener = initializeSessionsListener(internalFavoredSessions, "favored");
-            onStateSucceeded.run();
+            ready.set(true);
+            retrievingFavoriteSessions.set(false);
+            finishNotificationsPreloading();
         });
-        functionSessions.setOnFailed(e -> LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "favored"), e.getSource().getException()));
+        functionSessions.setOnFailed(e -> {
+            LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "favored"), e.getSource().getException());
+            retrievingFavoriteSessions.set(false);
+        });
 
         return internalFavoredSessions;
     }
@@ -948,42 +974,6 @@ public class DevoxxService implements Service {
         });
     }
 
-    private String readConferenceIdFromFile(File reload) {
-        StringBuilder fileContent = new StringBuilder((int) reload.length());
-        try (Scanner scanner = new Scanner(reload)) {
-            String lineSeparator = System.getProperty("line.separator");
-            while (scanner.hasNextLine()) {
-                fileContent.append(scanner.nextLine()).append(lineSeparator);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        LOG.log(Level.INFO, "read reload file '" + fileContent.toString() + "'");
-        return findConferenceIdFromString(fileContent.toString());
-    }
-
-    private String findConferenceIdFromString(String fileContent) {
-        try {
-            String trimmedContent = fileContent.replaceAll("\"", "")
-                    .replaceAll(" ", "")
-                    .replaceAll("\\}", ",");
-            String[] keyValue = trimmedContent.split(",");
-            for (String aKeyValue : keyValue) {
-                if (aKeyValue.contains("body")) {
-                    return aKeyValue.split(":")[1];
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-    private static JsonObject createJsonObject(String fileContent) {
-        JsonReader reader = Json.createReader(new StringReader(fileContent));
-        return (JsonObject) reader.read();
-    }
-
     private static ZonedDateTime timeToZonedDateTime(long time, ZoneId zoneId) {
         return ZonedDateTime.ofInstant(Instant.ofEpochMilli(time), zoneId);
     }
@@ -995,6 +985,62 @@ public class DevoxxService implements Service {
         }
         catch (NumberFormatException e) {
             return false;
+        }
+    }
+
+    private void addLocalNotification() {
+        Services.get(SettingsService.class).ifPresent(ss -> {
+            String conferenceList = ss.retrieve(DevoxxSettings.LOCAL_NOTIFICATION_RATING);
+            if (conferenceList != null && !conferenceList.isEmpty()) {
+                if (Arrays.asList(conferenceList.split(",")).contains(getConference().getId())) {
+                    return;
+                }
+                conferenceList = conferenceList + "," + getConference().getId();
+            } else {
+                conferenceList = getConference().getId();
+            }
+            DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+            notifications.addRatingNotification(getConference());
+            ss.store(DevoxxSettings.LOCAL_NOTIFICATION_RATING, conferenceList);
+        });
+    }
+
+    private void finishNotificationsPreloading() {
+        if (!retrievingSessions.get() && !retrievingFavoriteSessions.get()) {
+            DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
+            notifications.preloadingNotificationsDone();
+        }
+    }
+
+    // This piece of code exists to enable backward compatibility and
+    // should be safe to delete after the new version stabilizes
+    private static void deleteOldFiles(File rootDir) {
+        File versionFile = new File(rootDir, DevoxxSettings.VERSION_NO);
+        if (versionFile.exists()) return;
+        File[] files = rootDir.listFiles();
+        if (files != null) {
+            for (File c : files) {
+                delete(c);
+            }
+        }
+        try {
+            versionFile.createNewFile();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void delete(File f) {
+        if (f.isDirectory()) {
+            File[] files = f.listFiles();
+            if (files != null) {
+                for (File c : files) {
+                    delete(c);
+                }
+            }
+        }
+        if (f.getName().endsWith(".cache") || f.getName().endsWith(".info")) {
+            f.delete();
         }
     }
 }
