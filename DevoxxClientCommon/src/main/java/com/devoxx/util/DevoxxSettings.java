@@ -188,7 +188,7 @@ public class DevoxxSettings {
     }
     
     public static boolean conferenceHasBadgeView(Conference conference) {
-        return conferenceInSet(CONFERENCE_COUNTRIES_WITH_BADGES, conference);
+        return conferenceInSet(CONFERENCE_COUNTRIES_WITH_BADGES, conference) || conference.getName().equals("Voxxed Days Microservices 2018");
     }
     
     public static boolean conferenceHasVoting(Conference conference) {
