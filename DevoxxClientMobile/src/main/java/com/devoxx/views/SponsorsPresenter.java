@@ -30,9 +30,7 @@ import com.devoxx.DevoxxView;
 import com.devoxx.model.Sponsor;
 import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
-import com.devoxx.util.SponsorCategory;
 import com.devoxx.views.cell.SponsorCell;
-import com.devoxx.views.cell.SponsorHeaderCell;
 import com.devoxx.views.helper.Placeholder;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.control.AppBar;
@@ -56,7 +54,7 @@ public class SponsorsPresenter extends GluonPresenter<DevoxxApplication> {
     private View sponsors;
     
     @FXML
-    private CharmListView<Sponsor, SponsorCategory> sponsorListView;
+    private CharmListView<Sponsor, String> sponsorListView;
 
     @Inject
     private Service service;
@@ -77,12 +75,8 @@ public class SponsorsPresenter extends GluonPresenter<DevoxxApplication> {
 
         sponsorListView.setPlaceholder(new Placeholder(PLACEHOLDER_TITLE, PLACEHOLDER_MESSAGE, DevoxxView.SPONSORS.getMenuIcon()));
 
-        sponsorListView.setHeadersFunction(Sponsor::getLevel);
-        sponsorListView.setHeaderComparator((category1, category2) -> Integer.compare(category1.getValue(), category2.getValue()));
-
         sponsorListView.setCellFactory(p -> new SponsorCell());
-        sponsorListView.setHeaderCellFactory(p -> new SponsorHeaderCell());
-        sponsorListView.setComparator((s1, s2) -> s1.getName().compareTo(s2.getName()));
+        sponsorListView.setComparator((s1, s2) -> s1.getName().compareToIgnoreCase(s2.getName()));
 
         service.conferenceProperty().addListener(o -> {
             sponsorListView.setItems(FXCollections.emptyObservableList());

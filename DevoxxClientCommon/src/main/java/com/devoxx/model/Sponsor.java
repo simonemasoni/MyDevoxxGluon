@@ -25,7 +25,6 @@
  */
 package com.devoxx.model;
 
-import com.devoxx.util.SponsorCategory;
 
 import java.util.Locale;
 import java.util.Objects;
@@ -35,19 +34,15 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
     private String id;
     private String name;
     private String slug;
-    private String imageURL;
-    private SponsorCategory level;
 
     public Sponsor() {
 
     }
 
-    public Sponsor(String id, String name, String slug, String imageURL, String level) {
+    public Sponsor(String id, String name, String slug) {
         this.id = id;
         this.name = name;
         this.slug = slug;
-        this.imageURL = imageURL;
-        setLevel(level);
     }
 
     public String getId() {
@@ -74,34 +69,12 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
         this.slug = slug;
     }
 
-    public String getImageURL() {
-        return imageURL;
-    }
-
-    public void setImageURL(String imageURL) {
-        this.imageURL = imageURL;
-    }
-
-    public SponsorCategory getLevel() {
-        return level;
-    }
-
-    public void setLevel(String level) {
-        for (SponsorCategory category : SponsorCategory.values()) {
-            if (category.getShortName().equalsIgnoreCase(level)) {
-                this.level = category;
-                break;
-            }
-        }
-    }
 
     public String toCSV() {
         StringBuilder csv = new StringBuilder();
         csv.append(safeStr(getId()))
             .append(",").append(safeStr(getName()))
-            .append(",").append(safeStr(getSlug()))
-            .append(",").append(safeStr(getImageURL()))
-            .append(",").append(safeStr(getLevel().getShortName()));
+            .append(",").append(safeStr(getSlug()));
         return csv.toString();
     }
 
@@ -109,13 +82,11 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
         Sponsor sponsor = null;
         if (csv == null || csv.isEmpty()) return null;
         final String[] split = csv.split(",");
-        if (split.length == 5) {
+        if (split.length == 3) {
             sponsor = new Sponsor();
             sponsor.setId(split[0]);
             sponsor.setName(split[1]);
             sponsor.setSlug(split[2]);
-            sponsor.setImageURL(split[3]);
-            sponsor.setLevel(split[4]);
         }
         return sponsor;
     }
@@ -139,14 +110,7 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
             changed = true;
             this.slug = other.slug;
         }
-        if (!Objects.equals(other.imageURL, this.imageURL)) {
-            changed = true;
-            this.imageURL = other.imageURL;
-        }
-        if (!Objects.equals(other.level, this.level)) {
-            changed = true;
-            this.level = other.level;
-        }
+
         return changed;
     }
 
@@ -157,8 +121,7 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
         }
         String lowerKeyword = keyword.toLowerCase(Locale.ROOT);
         return containsKeyword(getName(), lowerKeyword)        ||
-                containsKeyword(getSlug(), lowerKeyword) ||
-                containsKeyword(getLevel(), lowerKeyword);
+                containsKeyword(getSlug(), lowerKeyword);
     }
 
     @Override
@@ -168,13 +131,11 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
         Sponsor sponsor = (Sponsor) o;
         return Objects.equals(id, sponsor.id) &&
                 Objects.equals(name, sponsor.name) &&
-                Objects.equals(slug, sponsor.slug) &&
-                Objects.equals(imageURL, sponsor.imageURL) &&
-                level == sponsor.level;
+                Objects.equals(slug, sponsor.slug);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, slug, imageURL, level);
+        return Objects.hash(id, name, slug);
     }
 }
