@@ -5,7 +5,7 @@
         <key>CFBundleIdentifier</key>
         <string>com.devoxx.mydevoxx.swift</string>
         <key>CFBundleVersion</key>
-        <!-- buildnumber --><string>327</string>
+        <!-- buildnumber --><string>328</string>
         <key>CFBundleShortVersionString</key>
         <!-- versionnumber --><string>3.2.1</string>
         <key>CFBundleExecutable</key>
