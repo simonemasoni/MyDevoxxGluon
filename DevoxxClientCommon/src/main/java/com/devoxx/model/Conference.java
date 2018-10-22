@@ -82,6 +82,7 @@ public class Conference {
     private String linkedInClientId;
     private String linkedInSecret;
     private String maxProposals;
+    private boolean myBadgeActive;
     List<Owner> owners;
     List<Track> tracks;
     List<SessionType> sessionTypes;
@@ -381,6 +382,14 @@ public class Conference {
 
     public void setMaxProposals(String maxProposals) {
         this.maxProposals = maxProposals;
+    }
+
+    public boolean isMyBadgeActive() {
+        return myBadgeActive;
+    }
+
+    public void setMyBadgeActive(boolean myBadgeActive) {
+        this.myBadgeActive = myBadgeActive;
     }
 
     public List<Owner> getOwners() {
