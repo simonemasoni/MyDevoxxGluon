@@ -236,6 +236,11 @@ public interface Service {
     ObservableList<SponsorBadge> retrieveSponsorBadges(Sponsor sponsor);
 
     /**
+     * Logs out the currently logged in sponsor
+     */
+    void logoutSponsor();
+
+    /**
      * Returns a list of favored or scheduled sessions from the cloud.
      * @param sessionListType Type of session
      * @return A list of favored or scheduled session.

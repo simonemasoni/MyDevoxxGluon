@@ -31,6 +31,7 @@ import com.devoxx.model.Badge;
 import com.devoxx.model.BadgeType;
 import com.devoxx.model.Sponsor;
 import com.devoxx.model.SponsorBadge;
+import com.devoxx.service.DevoxxService;
 import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
 import com.devoxx.util.DevoxxSettings;
@@ -208,6 +209,8 @@ public class SponsorBadgePresenter extends GluonPresenter<DevoxxApplication> {
         final MenuItem scanAsDifferentUser = new MenuItem(text);
         scanAsDifferentUser.setOnAction(e -> {
             Util.removeKeysFromSettings(DevoxxSettings.BADGE_TYPE, DevoxxSettings.BADGE_SPONSOR);
+            service.logoutSponsor();
+            sponsorBadges = null;
             DevoxxView.BADGES.switchView();
         });
         return scanAsDifferentUser;

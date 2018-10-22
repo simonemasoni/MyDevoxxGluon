@@ -768,6 +768,11 @@ public class DevoxxService implements Service {
     }
 
     @Override
+    public void logoutSponsor() {
+        sponsorBadges = null;
+    }
+
+    @Override
     public void saveSponsorBadge(SponsorBadge sponsorBadge) {
         RemoteFunctionObject fnSponsorBadge = RemoteFunctionBuilder.create("saveSponsorBadge")
                 .param("0", safeStr(sponsorBadge.getSponsor().getSlug()))
