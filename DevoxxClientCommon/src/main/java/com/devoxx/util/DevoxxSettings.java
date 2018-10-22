@@ -135,11 +135,6 @@ public class DevoxxSettings {
      * List of devices that don't support Roboto Medium font, and will use OpenSans instead
      */
     public static final List<String> DEVICES_WITH_SANS_CSS = Arrays.asList("oneplus");
-    
-    /**
-     * List of conferences countries that support the Badges View
-     */
-    private static final EnumSet<DevoxxCountry> CONFERENCE_COUNTRIES_WITH_BADGES = EnumSet.of(DevoxxCountry.BE, DevoxxCountry.FR, DevoxxCountry.UK);
 
     /**
      * List of conferences contries that don't support favorite count
@@ -185,10 +180,6 @@ public class DevoxxSettings {
     public static void setLastVoteCast(long updatedLastVoteCast) {
         lastVoteCast = updatedLastVoteCast;
         Services.get(SettingsService.class).ifPresent(s -> s.store(LAST_VOTE_CAST, String.valueOf(lastVoteCast)));
-    }
-    
-    public static boolean conferenceHasBadgeView(Conference conference) {
-        return conferenceInSet(CONFERENCE_COUNTRIES_WITH_BADGES, conference) || conference.getName().equals("Voxxed Days Microservices 2018");
     }
     
     public static boolean conferenceHasVoting(Conference conference) {

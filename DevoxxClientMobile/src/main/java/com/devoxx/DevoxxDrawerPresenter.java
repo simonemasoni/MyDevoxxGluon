@@ -125,7 +125,7 @@ public class DevoxxDrawerPresenter extends GluonPresenter<DevoxxApplication> {
 
     private void checkAndAddBadgesItem(Conference conference) {
         if (conference == null) return;
-        if (DevoxxSettings.conferenceHasBadgeView(conference)) {
+        if (conference.isMyBadgeActive()) {
             for (Node item : drawer.getItems()) {
                 if (((NavigationDrawer.Item) item).getTitle().equals(DevoxxBundle.getString("OTN.VIEW.NOTES"))) {
                     final int index = drawer.getItems().indexOf(item) + 1;
