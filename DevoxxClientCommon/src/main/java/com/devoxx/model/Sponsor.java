@@ -75,7 +75,6 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
         csv.append(safeStr(getId()))
             .append(",").append(safeStr(getName()))
             .append(",").append(safeStr(getSlug()));
-        System.out.println("---------------------------------------------------> "+ csv.toString());
         return csv.toString();
     }
 
@@ -83,14 +82,12 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
         Sponsor sponsor = null;
         if (csv == null || csv.isEmpty()) return null;
         final String[] split = csv.split(",");
-        System.out.println("---------------------------------------------------> from string "+csv);
         if (split.length == 3) {
             sponsor = new Sponsor();
             sponsor.setId(split[0]);
             sponsor.setName(split[1]);
             sponsor.setSlug(split[2]);
         }
-        System.out.println("sponsor " + sponsor);
         return sponsor;
     }
 
