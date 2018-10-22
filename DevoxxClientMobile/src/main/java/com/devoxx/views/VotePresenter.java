@@ -32,8 +32,6 @@ import java.util.ResourceBundle;
 
 public class VotePresenter extends GluonPresenter<DevoxxApplication> {
 
-    private  static final int MINIMUM_CHARACTERS = 20;
-
     @FXML private ResourceBundle bundle = ResourceBundle.getBundle("com/devoxx/views/vote");
     @FXML private View vote;
     @FXML private Label title;
@@ -112,14 +110,6 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
                 }
             }
         });
-
-        feedback.setErrorValidator(s -> {
-            if(s.length() > 0 && s.length() < MINIMUM_CHARACTERS) {
-                return 20 - s.length() + " more character(s)..";
-            } else {
-                return "";
-            }
-        });
     }
 
     public void showVote(Session session) {
@@ -131,32 +121,27 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
 
     @FXML
     private void submit() {
-
-        int length = feedback.getText().length();
-        if (length > 0 && length < MINIMUM_CHARACTERS) {
-            feedback.requestFocus();
-        } else {
-            // Submit Vote to Backend
-            service.voteTalk(createVote(session.getTalk().getId()));
-            // Switch to INFO Pane
-            MobileApplication.getInstance().switchToPreviousView().ifPresent(view -> {
-                DevoxxView.getAppView(view).ifPresent(av -> {
-                    av.getPresenter().ifPresent(presenter -> {
-                        ((SessionPresenter)presenter).showSession(session, SessionPresenter.Pane.INFO);
-                    });
+        // Submit Vote to Backend
+        service.voteTalk(createVote(session.getTalk().getId()));
+        // Switch to INFO Pane
+        MobileApplication.getInstance().switchToPreviousView().ifPresent(view -> {
+            DevoxxView.getAppView(view).ifPresent(av -> {
+                av.getPresenter().ifPresent(presenter -> {
+                    ((SessionPresenter)presenter).showSession(session, SessionPresenter.Pane.INFO);
                 });
             });
-            // Show Toast
-            Toast toast = new Toast(DevoxxBundle.getString("OTN.VOTEPANE.SUBMIT_VOTE"));
-            toast.show();
-        }
+        });
+        // Show Toast
+        Toast toast = new Toast(DevoxxBundle.getString("OTN.VOTEPANE.SUBMIT_VOTE"));
+        toast.show();
     }
 
     private Vote createVote(String talkId) {
         Vote vote = new Vote(talkId);
-        // TODO: Replace with predefined compliment/improvement selected
-        /*vote.setDelivery(delivery.getText());
-        vote.setContent(content.getText());*/
+        // vote.setContent(content.getText());
+        if (comments.getSelectionModel().getSelectedItem() != null) {
+            vote.setDelivery(comments.getSelectionModel().getSelectedItem().getComment());
+        }
         vote.setOther(feedback.getText());
         vote.setValue((int) rating.getRating());
         return vote;
