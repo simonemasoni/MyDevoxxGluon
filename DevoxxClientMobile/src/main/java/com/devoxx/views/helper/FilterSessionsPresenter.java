@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, 2017, Gluon Software
+ * Copyright (c) 2016, 2018 Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -70,7 +70,7 @@ import static com.devoxx.views.helper.SessionTrack.fetchStyleClassForTrack;
 
 public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
 
-    private static final TimePeriod DEFAULT_TIME_PERIOD = TimePeriod.MORE_THAN_ONE_HOUR_AGO;
+    private static final TimePeriod DEFAULT_TIME_PERIOD = TimePeriod.ALL;
 
     @FXML private VBox dayFilter;
 
