@@ -1381,8 +1381,8 @@
 }
 
 .vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell:selected > .text {
-    -fx-font-weight: bold;
-}
+     -fx-font-weight: 800;
+ }
 
 /* Selected rows */
 .vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
