@@ -182,7 +182,7 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
             imageView.setFitHeight(50);
             imageView.setFitWidth(50);
             Platform.runLater(() -> prefWidthProperty().bind(getListView().widthProperty().divide(3.2)));
-            addEventFilter(MouseEvent.MOUSE_RELEASED, event -> {
+            addEventFilter(MouseEvent.MOUSE_PRESSED, event -> {
                 if (!isEmpty()) {
                     MultipleSelectionModel<T> selectionModel = getListView().getSelectionModel();
                     int index = getIndex();
