@@ -28,8 +28,8 @@ package com.devoxx.views.helper;
 import com.devoxx.DevoxxApplication;
 import com.devoxx.filter.TimePeriod;
 import com.devoxx.model.Conference;
-import com.devoxx.model.ProposalType;
 import com.devoxx.model.Session;
+import com.devoxx.model.SessionType;
 import com.devoxx.model.Track;
 import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
@@ -57,6 +57,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Rectangle;
 
 import javax.inject.Inject;
 import java.time.ZonedDateTime;
@@ -65,6 +66,7 @@ import java.util.Iterator;
 import java.util.function.Predicate;
 
 import static com.devoxx.DevoxxApplication.POPUP_FILTER_SESSIONS_MENU;
+import static com.devoxx.views.helper.SessionTrack.fetchStyleClassForTrack;
 
 public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
 
@@ -127,22 +129,22 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
             }
         });
 
-        ObservableList<ProposalType> proposalTypes = service.retrieveProposalTypes();
-        for (ProposalType proposalType : proposalTypes) {
-            addProposalTypeCheckBox(proposalType);
+        ObservableList<SessionType> sessionTypes = service.retrieveSessionTypes();
+        for (SessionType sessionType : sessionTypes) {
+            addSessionTypeCheckBox(sessionType);
         }
-        proposalTypes.addListener((ListChangeListener<ProposalType>) c -> {
+        sessionTypes.addListener((ListChangeListener<SessionType>) c -> {
             while (c.next()) {
-                for (ProposalType type : c.getRemoved()) {
+                for (SessionType type : c.getRemoved()) {
                     for (Iterator<Node> iterator = typeFilter.getChildren().iterator(); iterator.hasNext();) {
                         Node node = iterator.next();
-                        if (((ProposalType) node.getUserData()).getId().equals(type.getId())) {
+                        if (((SessionType) node.getUserData()).getId() == type.getId()) {
                             iterator.remove();
                         }
                     }
                 }
-                for (ProposalType type : c.getAddedSubList()) {
-                    addProposalTypeCheckBox(type);
+                for (SessionType type : c.getAddedSubList()) {
+                    addSessionTypeCheckBox(type);
                 }
                 updateIsFilterApplied();
             }
@@ -274,16 +276,19 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
 
     private void addTrackCheckBox(Track track) {
         CheckBox cbTrack = new CheckBox(track.getName());
+        Rectangle trackColor = new Rectangle(20, 20);
+        trackColor.getStyleClass().add(fetchStyleClassForTrack(track.getName().toUpperCase()));
+        cbTrack.setGraphic(trackColor);
         cbTrack.setUserData(track);
         cbTrack.setOnAction(this::addToFilter);
         trackFilter.getChildren().add(cbTrack);
     }
 
-    private void addProposalTypeCheckBox(ProposalType proposalType) {
-        CheckBox cbProposalType = new CheckBox(proposalType.getLabel());
-        cbProposalType.setUserData(proposalType);
-        cbProposalType.setOnAction(this::addToFilter);
-        typeFilter.getChildren().add(cbProposalType);
+    private void addSessionTypeCheckBox(SessionType sessionType) {
+        CheckBox cbSessionType = new CheckBox(sessionType.getName());
+        cbSessionType.setUserData(sessionType);
+        cbSessionType.setOnAction(this::addToFilter);
+        typeFilter.getChildren().add(cbSessionType);
     }
 
     private void apply() {
@@ -344,7 +349,7 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
         }
 
         for (Node node : trackFilter.getChildren()) {
-            if (((CheckBox) node).isSelected() && session.getTalk().getTrackId().equals(((Track) node.getUserData()).getId())) {
+            if (((CheckBox) node).isSelected() && session.getTalk().getTrackId().equals(((Track) node.getUserData()).getName())) {
                 return true;
             }
         }
@@ -363,7 +368,7 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
         }
 
         for (Node node : typeFilter.getChildren()) {
-            if (((CheckBox) node).isSelected() && session.getTalk().getTalkType().equals(((ProposalType) node.getUserData()).getLabel())) {
+            if (((CheckBox) node).isSelected() && session.getTalk().getTalkType().equals(((SessionType) node.getUserData()).getName())) {
                 return true;
             }
         }

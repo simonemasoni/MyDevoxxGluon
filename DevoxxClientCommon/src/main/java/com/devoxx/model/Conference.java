@@ -33,6 +33,7 @@ import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,6 +82,7 @@ public class Conference {
     private String linkedInClientId;
     private String linkedInSecret;
     private String maxProposals;
+    private boolean myBadgeActive;
     List<Owner> owners;
     List<Track> tracks;
     List<SessionType> sessionTypes;
@@ -382,6 +384,14 @@ public class Conference {
         this.maxProposals = maxProposals;
     }
 
+    public boolean isMyBadgeActive() {
+        return myBadgeActive;
+    }
+
+    public void setMyBadgeActive(boolean myBadgeActive) {
+        this.myBadgeActive = myBadgeActive;
+    }
+
     public List<Owner> getOwners() {
         return owners;
     }
@@ -493,6 +503,19 @@ public class Conference {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Conference that = (Conference) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
     public String toString() {
         return "Conference{" +
                 "id=" + id +
@@ -502,7 +525,8 @@ public class Conference {
     
     public enum Type {
         DEVOXX("Devoxx", "Devoxx"),
-        VOXXED("Voxxed", "VoxxedDays");
+        VOXXED("Voxxed", "VoxxedDays"),
+        MEETUP("Meetup", "Meetup");
 
         private String name;
         private String displayName;

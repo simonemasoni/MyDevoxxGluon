@@ -34,6 +34,7 @@ import java.time.format.FormatStyle;
 import java.util.*;
 
 public class DevoxxSettings {
+    public static final String BUILD_NUMBER = "328"                   ;
 
     /**
      * boolean option to switch on/off automatic authentication by using a self generated random UUID
@@ -109,12 +110,15 @@ public class DevoxxSettings {
     public static final String SKIP_FAV_DIALOG = "SKIP_FAV_DIALOG";
     public static final String SIGN_UP = "sign_up";
     public static final String SAVED_CONFERENCE_ID = "devoxx_cfp_id";
+    public static final String SAVED_CONFERENCE_NAME = "devoxx_cfp_name";
     public static final String SAVED_CONFERENCE_TYPE = "devoxx_cfp_type";
     public static final String SAVED_ACCOUNT_ID = "devoxx_cfp_account";
     public static final String BADGE_TYPE = "badge-type";
     public static final String BADGE_SPONSOR = "badge-sponsor";
     public static final String RELOAD = "reload";
     public static final String RATING = "rating";
+    public static final String LOCAL_NOTIFICATION_RATING = "local_notification_rating";
+    public static final String VERSION_NO = "version_3_0_0";
 
     private static final String WEARABLE_DAY_PATTERN  = "MMMM dd, uuuu";
     private static final String TIME_PATTERN = "h:mma";
@@ -131,11 +135,6 @@ public class DevoxxSettings {
      * List of devices that don't support Roboto Medium font, and will use OpenSans instead
      */
     public static final List<String> DEVICES_WITH_SANS_CSS = Arrays.asList("oneplus");
-    
-    /**
-     * List of conferences countries that support the Badges View
-     */
-    private static final EnumSet<DevoxxCountry> CONFERENCE_COUNTRIES_WITH_BADGES = EnumSet.of(DevoxxCountry.BE, DevoxxCountry.FR, DevoxxCountry.UK);
 
     /**
      * List of conferences contries that don't support favorite count
@@ -181,10 +180,6 @@ public class DevoxxSettings {
     public static void setLastVoteCast(long updatedLastVoteCast) {
         lastVoteCast = updatedLastVoteCast;
         Services.get(SettingsService.class).ifPresent(s -> s.store(LAST_VOTE_CAST, String.valueOf(lastVoteCast)));
-    }
-    
-    public static boolean conferenceHasBadgeView(Conference conference) {
-        return conferenceInSet(CONFERENCE_COUNTRIES_WITH_BADGES, conference);
     }
     
     public static boolean conferenceHasVoting(Conference conference) {

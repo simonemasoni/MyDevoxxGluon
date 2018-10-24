@@ -45,26 +45,37 @@ import java.util.logging.Logger;
 
 public class ETagImageTask extends Task<Image> {
 
-    private static final String DEVOXX_IMAGE = "_devoxx_image";
-    private static Logger LOGGER = Logger.getLogger(ETagImageTask.class.getName());
+    private static final String DEVOXX_IMAGE = "_devoxx_image2";
+    private static final Logger LOGGER = Logger.getLogger(ETagImageTask.class.getName());
 
-    private final String imageFileName;
     private final String url;
+    private final String eTagFileName;
+    private final String imageFileName;
+    private final String incompleteFileName;
+    
     private Image image;
 
     public ETagImageTask(String id, String url) {
-        this.imageFileName = id + DEVOXX_IMAGE + url.substring(url.lastIndexOf("."));
         this.url = url;
+        this.imageFileName = id + DEVOXX_IMAGE + url.substring(url.lastIndexOf("."));
+        this.eTagFileName = imageFileName + ".etag";
+        this.incompleteFileName = imageFileName + ".incomplete";
 
-        // TODO: This executes on the JavaFX application thread deteriorating the performance
-        /*try {
-            final FileDataSource imageDataSource = createCacheImageDataSource(imageFileName);
-            if (imageDataSource != null && imageDataSource.getFile().exists()) {
-                image = new Image(imageDataSource.getInputStream());
+        try {
+            final File incompleteFile = createFile(incompleteFileName);
+            if (incompleteFile != null && incompleteFile.exists()) {
+                // delete etag and incomplete jpeg files
+                incompleteFile.delete();
+                createFile(eTagFileName).delete();
+            } else {
+                final FileDataSource imageDataSource = createCacheImageDataSource(imageFileName);
+                if (imageDataSource != null && imageDataSource.getFile().exists()) {
+                    image = new Image(imageDataSource.getInputStream());
+                }
             }
         } catch (IOException e) {
             // do nothing
-        }*/
+        }
     }
 
     public Optional<Image> image() {
@@ -73,7 +84,7 @@ public class ETagImageTask extends Task<Image> {
 
     @Override
     protected Image call() throws Exception {
-        final FileDataSource eTagDataSource = createETagDataSource(imageFileName + ".etag");
+        final FileDataSource eTagDataSource = createETagDataSource(eTagFileName);
         String eTag = readFromETag(eTagDataSource);
         RestClient client = createMediaRestClient(url, eTag);
 
@@ -89,10 +100,12 @@ public class ETagImageTask extends Task<Image> {
                 restDataSource.getResponseCode() == 304) {
             return image != null ? image : new Image(cacheImageDataSource.getInputStream());
         }
+        // TODO: Check if it works when ETag is updated
         writeToETag(eTagDataSource, restDataSource);
-        if (cacheImageDataSource != null) {
+        final FileDataSource incompleteImageDataSource = createCacheImageDataSource(incompleteFileName);
+        if (incompleteImageDataSource != null) {
             updateProgress(1.0, 1.0);
-            try (CachingInputStream cis = new CachingInputStream(inputStream, cacheImageDataSource.getOutputStream())) {
+            try (CachingInputStream cis = new RenameCachingStream(inputStream, incompleteImageDataSource, cacheImageDataSource)) {
                 return new Image(cis);
             }
         }
@@ -133,20 +146,51 @@ public class ETagImageTask extends Task<Image> {
     }
 
     private FileDataSource createETagDataSource(String name) {
-        File root = PrivateStorage.get();
-        if (root != null) {
-            File cache = new File(root, name);
-            return new FileDataSource(cache);
+        final File eTagFile = createFile(name);
+        if (eTagFile != null) {
+            return new FileDataSource(eTagFile);
         }
         return null;
     }
 
     private FileDataSource createCacheImageDataSource(String mediaName) {
-        File root = PrivateStorage.get();
-        if (root != null) {
-            File cache = new File(root, mediaName);
+        File cache = createFile(mediaName);
+        if (cache != null) {
             return new FileDataSource(cache);
         }
         return null;
+    }
+
+    private File createFile(String name) {
+        File root = PrivateStorage.get();
+        if (root != null) {
+            return new File(root, name);
+        }
+        return null;
+    }
+
+    /**
+     * Writes the input stream to the source's output stream.
+     * Once completed, renames the source file to destination file.
+     */
+    private class RenameCachingStream extends CachingInputStream {
+
+        private FileDataSource source;
+        private FileDataSource destination;
+
+        RenameCachingStream(InputStream in, FileDataSource source, FileDataSource destination) throws IOException {
+            super(in, source.getOutputStream());
+            this.source = source;
+            this.destination = destination;
+        }
+
+        @Override
+        public void close() throws IOException {
+            try {
+                super.close();
+            } finally {
+                source.getFile().renameTo(destination.getFile());
+            }
+        }
     }
 }

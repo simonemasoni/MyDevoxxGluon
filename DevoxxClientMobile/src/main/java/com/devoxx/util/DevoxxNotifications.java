@@ -26,12 +26,15 @@
 package com.devoxx.util;
 
 import com.devoxx.DevoxxView;
+import com.devoxx.model.Conference;
 import com.devoxx.model.Session;
 import com.devoxx.service.Service;
 import com.devoxx.views.SessionPresenter;
+import com.devoxx.views.helper.Util;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.LocalNotificationsService;
 import com.gluonhq.charm.down.plugins.Notification;
+import javafx.beans.InvalidationListener;
 import javafx.collections.ListChangeListener;
 
 import javax.inject.Inject;
@@ -57,7 +60,9 @@ public class DevoxxNotifications {
     
     private static final String ID_START = "START_";
     private static final String ID_VOTE = "VOTE_";
+    private static final String ID_RATE = "RATE_";
 
+    private final static String TITLE_RATE_DEVOXX = DevoxxBundle.getString("OTN.VISUALS.RATE_DEVOXX");
     private final static String TITLE_VOTE_SESSION = DevoxxBundle.getString("OTN.VISUALS.VOTE_NOW");
     private final static String TITLE_SESSION_STARTS = DevoxxBundle.getString("OTN.VISUALS.SESSION_STARTING_SOON");
     private final static int SHOW_VOTE_NOTIFICATION = -2; // show vote notification two minutes before session ends
@@ -65,16 +70,19 @@ public class DevoxxNotifications {
     
     private final Map<String, Notification> startSessionNotificationMap = new HashMap<>();
     private final Map<String, Notification> voteSessionNotificationMap = new HashMap<>();
+    private final Map<String, Notification> ratingNotificationMap = new HashMap<>();
     private final Map<String, Notification> dummyNotificationMap = new HashMap<>();
 
+    private InvalidationListener ratingListener;
     private ListChangeListener<Session> favoriteSessionsListener;
-    
+
     @Inject
     private Service service;
     
     private final Optional<LocalNotificationsService> notificationsService;
     private boolean startup;
-    
+    private boolean authenticatedStartup;
+
     public DevoxxNotifications() {
         notificationsService = Services.get(LocalNotificationsService.class);
     }
@@ -105,6 +113,15 @@ public class DevoxxNotifications {
             });
         }
     }
+
+    public void addRatingNotification(Conference conference) {
+        if (!ratingNotificationMap.containsKey(conference.getId())) {
+            createRatingNotification(conference).ifPresent(notification -> {
+                ratingNotificationMap.put(conference.getId(), notification);
+                notificationsService.ifPresent(n -> n.getNotifications().add(notification));
+            });
+        }
+    }
     
     /**
      * If a favorite session is removed as favorite, both start and vote notifications
@@ -121,7 +138,25 @@ public class DevoxxNotifications {
             notificationsService.ifPresent(n -> n.getNotifications().remove(voteNotification));
         }
     }
-    
+
+    /**
+     * Called when the application starts, allows retrieving the rating
+     * notifications, and restoring the notifications map
+     */
+    public void preloadRatingNotifications() {
+        if (LOGGING_ENABLED) {
+            LOG.log(Level.INFO, "Preload of rating notifications started");
+        }
+        startup = true;
+        ratingListener = observable -> {
+            if (service.retrieveSessions().size() > 0) {
+                addAlreadyRatingNotifications();
+                service.retrieveSessions().removeListener(ratingListener);
+            }
+        };
+        service.retrieveSessions().addListener(ratingListener);
+    }
+
     /**
      * Called when the application starts, allows retrieving the favorite
      * notifications, and restoring the notifications map
@@ -131,7 +166,7 @@ public class DevoxxNotifications {
             LOG.log(Level.INFO, "Preload of favored sessions started");
         }
         if (service.isAuthenticated()) { 
-            startup = true;
+            authenticatedStartup = true;
             favoriteSessionsListener = (ListChangeListener.Change<? extends Session> c) -> {
                 while (c.next()) {
                     if (c.wasAdded()) {
@@ -145,64 +180,75 @@ public class DevoxxNotifications {
                 }
             };
             service.retrieveFavoredSessions().addListener(favoriteSessionsListener);
+            // we don't make call to preloadRatingNotifications from DevoxxService#retrieveSessionsInternal
+            // when the user is authenticated and try to fuse the flow with that of FavoriteNotifications
+            preloadRatingNotifications();
         }
     }
-    
+
     /**
      * Called after the application has started and pre-loading the favored sessions
      * ends. At this point, we have all the notifications available, and we can remove
      * the listener (so new notifications are not treated as already scheduled) and 
      * send them to the Local Notifications service at once
      */
-    public void preloadingFavoriteSessionsDone() {
+    public void preloadingNotificationsDone() {
         if (favoriteSessionsListener != null) {
             service.retrieveFavoredSessions().removeListener(favoriteSessionsListener);
             favoriteSessionsListener = null;
-        
-            if (! dummyNotificationMap.isEmpty()) {
-                
-                // 1. Add all dummy notifications to the notification map at once. 
-                // These need to be present all the time (as notifications will 
-                // be opened always some time after they were delivered). 
-                // Adding these dummy notifications doesn't schedule them on the
-                // device and it doesn't cause duplicate exceptions
-                notificationsService.ifPresent(ns -> 
-                        ns.getNotifications().addAll(dummyNotificationMap.values()));
-            }
-            
-            // process notifications at once
-            List<Notification> notificationList = new ArrayList<>();
-            notificationList.addAll(startSessionNotificationMap.values());
-            notificationList.addAll(voteSessionNotificationMap.values());
-            
-            if (! notificationList.isEmpty()) {
-            
-                // 2. Schedule only real future notifications 
-                final ZonedDateTime now = ZonedDateTime.now(service.getConference().getConferenceZoneId());
-                notificationsService.ifPresent(ns -> {
-                    for (Notification n : notificationList) {
-                        if (n.getDateTime() != null && n.getDateTime().isAfter(now)) {
-                            // Remove notification before scheduling it again, 
-                            // to avoid duplicate exception
-                            final Notification dummyN = dummyNotificationMap.get(n.getId());
-                            if (dummyN != null) {
-                                if (LOGGING_ENABLED) {
-                                    LOG.log(Level.INFO, String.format("Removing notification %s", n.getId()));
-                                }
-                                ns.getNotifications().remove(dummyN);
-                            }
-                            if (LOGGING_ENABLED) {
-                                LOG.log(Level.INFO, String.format("Adding favored notification %s", n.getId()));
-                            }
-                            ns.getNotifications().add(n);
-                        }
-                    }
-                });
-            }
-            
-            dummyNotificationMap.clear();
         }
+
+        if (ratingListener != null) {
+            service.retrieveSessions().removeListener(ratingListener);
+            ratingListener = null;
+        }
+
+        if (! dummyNotificationMap.isEmpty()) {
+
+            // 1. Add all dummy notifications to the notification map at once.
+            // These need to be present all the time (as notifications will
+            // be opened always some time after they were delivered).
+            // Adding these dummy notifications doesn't schedule them on the
+            // device and it doesn't cause duplicate exceptions
+            notificationsService.ifPresent(ns ->
+                    ns.getNotifications().addAll(dummyNotificationMap.values()));
+        }
+
+        // process notifications at once
+        List<Notification> notificationList = new ArrayList<>();
+        notificationList.addAll(startSessionNotificationMap.values());
+        notificationList.addAll(voteSessionNotificationMap.values());
+        notificationList.addAll(ratingNotificationMap.values());
+
+        if (! notificationList.isEmpty()) {
+
+            // 2. Schedule only real future notifications
+            final ZonedDateTime now = ZonedDateTime.now(service.getConference().getConferenceZoneId());
+            notificationsService.ifPresent(ns -> {
+                for (Notification n : notificationList) {
+                    if (n.getDateTime() != null && n.getDateTime().isAfter(now)) {
+                        // Remove notification before scheduling it again,
+                        // to avoid duplicate exception
+                        final Notification dummyN = dummyNotificationMap.get(n.getId());
+                        if (dummyN != null) {
+                            if (LOGGING_ENABLED) {
+                                LOG.log(Level.INFO, String.format("Removing notification %s", n.getId()));
+                            }
+                            ns.getNotifications().remove(dummyN);
+                        }
+                        if (LOGGING_ENABLED) {
+                            LOG.log(Level.INFO, String.format("Adding favored notification %s", n.getId()));
+                        }
+                        ns.getNotifications().add(n);
+                    }
+                }
+            });
+        }
+
+        dummyNotificationMap.clear();
+
         startup = false;
+        authenticatedStartup = false;
         if (LOGGING_ENABLED) {
             LOG.log(Level.INFO, "Preload of favored sessions ended");
         }
@@ -216,7 +262,7 @@ public class DevoxxNotifications {
     private Optional<Notification> createStartNotification(Session session) {
         final ZonedDateTime now = ZonedDateTime.now(service.getConference().getConferenceZoneId());
         
-        // Add notification 15 min before session starts or during startup
+        // Add notification 15 min before session starts or during authenticatedStartup
         ZonedDateTime dateTimeStart = session.getStartDate().plusMinutes(SHOW_SESSION_START_NOTIFICATION);
         if (DevoxxSettings.NOTIFICATION_TESTS) {
             dateTimeStart = dateTimeStart.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
@@ -226,7 +272,7 @@ public class DevoxxNotifications {
         }
         
         // add the notification for new ones if they haven't started yet
-        if (dateTimeStart.isAfter(now) || startup) {
+        if (dateTimeStart.isAfter(now) || authenticatedStartup) {
             return Optional.of(getStartNotification(session, dateTimeStart));
         }
         return Optional.empty();
@@ -250,9 +296,34 @@ public class DevoxxNotifications {
             }
         }
         
-        // add the notification if the session hasn't finished yet or during startup
-        if (dateTimeVote.isAfter(now) || startup) {
+        // add the notification if the session hasn't finished yet or during authenticatedStartup
+        if (dateTimeVote.isAfter(now) || authenticatedStartup) {
             return Optional.of(getVoteNotification(session, dateTimeVote));
+        }
+        return Optional.empty();
+    }
+
+    /**
+     * Creates a notification that will be triggered by the device right before the end of the conference
+     * @param conference Conference for which the notification has to be triggered
+     * @return a notification if the session wasn't added yet and it was already scheduled or
+     * the event is in the future
+     */
+    private Optional<Notification> createRatingNotification(Conference conference) {
+        final ZonedDateTime now = ZonedDateTime.now(conference.getConferenceZoneId());
+
+        // Add notification an hour before the last session begins
+        ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(service).getStartDate().minusHours(1);
+        if (DevoxxSettings.NOTIFICATION_TESTS) {
+            dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
+            if (LOGGING_ENABLED) {
+                LOG.log(Level.INFO, String.format("Rating notification scheduled at: %s", dateTimeRating));
+            }
+        }
+
+        // add the notification if the time is in future or is startup is true
+        if (dateTimeRating.isAfter(now) || startup) {
+            return Optional.of(getRatingNotification(conference, dateTimeRating));
         }
         return Optional.empty();
     }
@@ -261,7 +332,7 @@ public class DevoxxNotifications {
      * For an already favored session, we create two local notifications.
      * 
      * These notifications are not sent to the Local Notification service yet: 
-     * this will be done when calling {@link #preloadingFavoriteSessionsDone()}.
+     * this will be done when calling {@link #preloadingNotificationsDone()}.
      * 
      * We don't schedule them again on the device, but we add these notifications to the 
      * notifications map, so in case they are delivered, their runnable is available.
@@ -278,7 +349,7 @@ public class DevoxxNotifications {
             dateTimeStart = dateTimeStart.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
         }
         
-        if (dateTimeStart.isAfter(now) || startup) {
+        if (dateTimeStart.isAfter(now) || authenticatedStartup) {
             if (!startSessionNotificationMap.containsKey(sessionId)) {
                 dummyNotificationMap.put(ID_START + sessionId, getStartNotification(session, null));
 
@@ -297,7 +368,7 @@ public class DevoxxNotifications {
         if (DevoxxSettings.NOTIFICATION_TESTS) {
             dateTimeVote = dateTimeVote.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
         }
-        if (dateTimeVote.isAfter(now) || startup) {
+        if (dateTimeVote.isAfter(now) || authenticatedStartup) {
             if (!voteSessionNotificationMap.containsKey(sessionId)) {
                 dummyNotificationMap.put(ID_VOTE + sessionId, getVoteNotification(session, null));
                 
@@ -306,6 +377,31 @@ public class DevoxxNotifications {
                         LOG.log(Level.INFO, String.format("Adding vote notification %s", n.getId()));
                     }
                     voteSessionNotificationMap.put(sessionId, n);
+                });
+            }
+        }
+    }
+
+    private void addAlreadyRatingNotifications() {
+        final Conference conference = service.getConference();
+
+        final ZonedDateTime now = ZonedDateTime.now(service.getConference().getConferenceZoneId());
+        // Add notification an hour before the last session begins
+        ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(service).getStartDate().minusHours(1);
+        if (DevoxxSettings.NOTIFICATION_TESTS) {
+            dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
+        }
+
+        // add the notification if the time is in future
+        if (dateTimeRating.isAfter(now)  || startup) {
+            if (!ratingNotificationMap.containsKey(conference.getId())) {
+                dummyNotificationMap.put(ID_RATE + conference.getId(), getRatingNotification(conference, null));
+
+                createRatingNotification(conference).ifPresent(n -> {
+                    if (LOGGING_ENABLED) {
+                        LOG.log(Level.INFO, String.format("Adding rating notification %s", n.getId()));
+                    }
+                    ratingNotificationMap.put(conference.getId(), n);
                 });
             }
         }
@@ -362,5 +458,28 @@ public class DevoxxNotifications {
                     });
                 });
     }
-    
+
+    /**
+     * Creates a notification that will be triggered by the device at the end of a conference,
+     * requesting users to rate for the app
+     * @param conference Conference for which the notification is to be scheduled
+     * @param dateTimeRating Zoned date time at which the notification is to be shown.
+     * If null, this notification won't be scheduled on the device
+     * @return a local notification
+     */
+    private Notification getRatingNotification(Conference conference, ZonedDateTime dateTimeRating) {
+        return new Notification(
+            ID_RATE + conference.getId(),
+            TITLE_RATE_DEVOXX,
+            DevoxxBundle.getString("OTN.VISUALS.HELP_US_IMPROVE_DEVOXX"),
+            DevoxxNotifications.class.getResourceAsStream("/icon.png"),
+            dateTimeRating,
+            () -> {
+                if (LOGGING_ENABLED) {
+                    LOG.log(Level.INFO, String.format("Running rating notification %s", conference.getId()));
+                }
+                DevoxxView.SESSIONS.switchView();
+            }
+        );
+    }
 }

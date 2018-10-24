@@ -38,6 +38,8 @@ import com.devoxx.views.helper.LoginPrompter;
 import com.devoxx.views.helper.Placeholder;
 import com.devoxx.views.helper.SessionVisuals.SessionListType;
 import com.devoxx.views.helper.Util;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.afterburner.GluonView;
 import com.gluonhq.charm.glisten.application.MobileApplication;
@@ -117,13 +119,22 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
     private BottomNavigationButton favoriteButton;
 
     public void initialize() {
+
+        // Filter
+        final Button filterButton = createFilterButton();
+        filterSessionsView = new GluonView(FilterSessionsPresenter.class);
+        filterPresenter = (FilterSessionsPresenter) filterSessionsView.getPresenter();
+        filterPredicateProperty.bind(filterPresenter.searchPredicateProperty());
+        filterButton.pseudoClassStateChanged(PSEUDO_FILTER_ENABLED, filterPresenter.isFilterApplied());
+        filterPresenter.filterAppliedProperty().addListener((ov, oldValue, newValue) -> {
+            filterButton.pseudoClassStateChanged(PSEUDO_FILTER_ENABLED, newValue);
+        });
+
         createView();
         service.conferenceProperty().addListener((obs, ov, nv) -> {
             sessions.setBottom(null);
             createView();
         });
-
-        final Button filterButton = createFilterButton();
 
         sessions.setOnShowing(event -> {
             AppBar appBar = getApp().getAppBar();
@@ -148,14 +159,6 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
             showRatingDialog();
         });
 
-        // Filter
-        filterSessionsView = new GluonView(FilterSessionsPresenter.class);
-        filterPresenter = (FilterSessionsPresenter) filterSessionsView.getPresenter();
-        filterPredicateProperty.bind(filterPresenter.searchPredicateProperty());
-        filterButton.pseudoClassStateChanged(PSEUDO_FILTER_ENABLED, filterPresenter.isFilterApplied());
-        filterPresenter.filterAppliedProperty().addListener((ov, oldValue, newValue) -> {
-            filterButton.pseudoClassStateChanged(PSEUDO_FILTER_ENABLED, newValue);
-        });
         MobileApplication.getInstance().addLayerFactory(DevoxxApplication.POPUP_FILTER_SESSIONS_MENU, () -> {
             if (filterPopup == null) {
                 filterPopup = new SidePopupView(filterSessionsView.getView(), Side.TOP, true);
@@ -348,7 +351,12 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         buttons.getStyleClass().add("buttons");
         no.getStyleClass().add("no");
         yes.getStyleClass().add("yes");
-        later.setOnAction(e -> sessions.setTop(null));
+        later.setOnAction(e -> {
+            sessions.setTop(null);
+            Services.get(SettingsService.class).ifPresent(ss -> {
+                ss.store(service.getConference().getId() + "_" + DevoxxSettings.RATING, "SHOWN");
+            });
+        });
         no.setOnAction(e -> {
             header.setText(DevoxxBundle.getString("OTN.FEEDBACK.QUESTION.IMPROVE"));
             final Button feedback = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.BUTTON.FEEDBACK"));

@@ -28,6 +28,7 @@ package com.devoxx;
 import com.airhacks.afterburner.injection.Injector;
 import com.devoxx.model.Badge;
 import com.devoxx.model.BadgeType;
+import com.devoxx.model.Conference;
 import com.devoxx.model.Sponsor;
 import com.devoxx.model.SponsorBadge;
 import com.devoxx.service.DevoxxService;
@@ -37,6 +38,7 @@ import com.devoxx.views.DevoxxSplash;
 import com.devoxx.views.SessionsPresenter;
 import com.devoxx.views.helper.ConnectivityUtils;
 import com.devoxx.views.helper.SessionVisuals;
+import com.devoxx.views.layer.ConferenceLoadingLayer;
 import com.gluonhq.charm.down.Platform;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.*;
@@ -130,9 +132,15 @@ public class DevoxxApplication extends MobileApplication {
 
         // Check if conference is set and switch to Sessions view
         Services.get(SettingsService.class).ifPresent(settingsService -> {
-            String configuredConference = settingsService.retrieve(DevoxxSettings.SAVED_CONFERENCE_ID);
-            if (configuredConference != null) {
-                DevoxxView.SESSIONS.switchView();
+            String conferenceId = settingsService.retrieve(DevoxxSettings.SAVED_CONFERENCE_ID);
+            String conferenceName = settingsService.retrieve(DevoxxSettings.SAVED_CONFERENCE_NAME);
+            String conferenceType = settingsService.retrieve(DevoxxSettings.SAVED_CONFERENCE_TYPE);
+            if (conferenceId != null && conferenceName != null && conferenceType != null) {
+                Conference conference = new Conference();
+                conference.setId(conferenceId);
+                conference.setName(conferenceName);
+                conference.setEventType(conferenceType);
+                ConferenceLoadingLayer.show(service, conference);
             }
         });
 
@@ -158,6 +166,12 @@ public class DevoxxApplication extends MobileApplication {
                 deviceFactorSuffix,
                 formFactorSuffix);
         scene.getStylesheets().add(DevoxxApplication.class.getResource(stylesheetName).toExternalForm());
+
+        String voxxedStylesheet = DevoxxApplication.class.getResource("voxxed.css").toExternalForm();
+        addOrRemoveVoxxedStylesheet(scene, service.getConference(), voxxedStylesheet);
+        service.conferenceProperty().addListener((observable, oldValue, newValue) -> {
+            addOrRemoveVoxxedStylesheet(scene, newValue, voxxedStylesheet);
+        });
         
         if (Platform.isDesktop()) {
             Window window = scene.getWindow();
@@ -181,6 +195,16 @@ public class DevoxxApplication extends MobileApplication {
         if (signUp) {
             Services.get(SettingsService.class).ifPresent(settings -> settings.remove(DevoxxSettings.SIGN_UP));
             DevoxxView.SESSIONS.switchView().ifPresent(s -> ((SessionsPresenter) s).selectFavorite());
+        }
+    }
+
+    private void addOrRemoveVoxxedStylesheet(Scene scene, Conference conference, String voxxedStylesheet) {
+        if (conference != null && conference.getEventType() == Conference.Type.VOXXED) {
+            if(!scene.getStylesheets().contains(voxxedStylesheet)) {
+                scene.getStylesheets().add(voxxedStylesheet);
+            }
+        } else {
+            scene.getStylesheets().remove(voxxedStylesheet);
         }
     }
 
@@ -217,6 +241,9 @@ public class DevoxxApplication extends MobileApplication {
             Services.get(ShareService.class).ifPresent(s -> {
                 File root = Services.get(StorageService.class).flatMap(storage -> storage.getPublicStorage("Documents")).orElse(null);
                 if (root != null) {
+                    if (!root.exists()) {
+                        root.mkdirs();
+                    }
                     File file = new File(root, "Devoxx" + DevoxxCountry.getConfShortName(service.getConference().getCountry()) + "-badges.csv");
                     if (file.exists()) {
                         file.delete();
@@ -242,8 +269,8 @@ public class DevoxxApplication extends MobileApplication {
                     } catch (IOException ex) {
                         LOG.log(Level.WARNING, "Error writing csv file ", ex);
                     }
-                    s.share(DevoxxBundle.getString("OTN.BADGES.SHARE.SUBJECT"),
-                            DevoxxBundle.getString("OTN.BADGES.SHARE.MESSAGE", DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).format(LocalDate.now())),
+                    s.share(DevoxxBundle.getString("OTN.BADGES.SHARE.SUBJECT", service.getConference().getName()),
+                            DevoxxBundle.getString("OTN.BADGES.SHARE.MESSAGE", service.getConference().getName(), DateTimeFormatter.ofLocalizedDate(FormatStyle.SHORT).format(LocalDate.now())),
                             "text/plain", file);
                 } else {
                     LOG.log(Level.WARNING, "Error accessing local storage");

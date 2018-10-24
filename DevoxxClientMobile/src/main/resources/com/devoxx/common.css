@@ -50,6 +50,8 @@
     -map-marker-color: #566A92;
 }
 
+/* TODO: Uncomment when StatusBar Glisten bug is fixed */
+/*
 .status-bar {
     -fx-background-color: -primary-swatch-700;
 }
@@ -65,7 +67,9 @@
 .status-bar:conf:error  {
     -fx-background-color: -primary-swatch-700;
 }
+*/
 
+/** Conference Selector **/
 .conf-selector-view {
     -fx-background-color: #202122;
 }
@@ -114,11 +118,11 @@
     -fx-text-fill: black;
     -fx-padding: 0.1em;
     -fx-font-size: 0.8em;
-    -fx-background-color: -primary-swatch-300;
+    -fx-background-color: #DF9356;
 }
 
 .conference-cell:voxxed .label.type {
-    -fx-background-color: #27B1DB;
+    -fx-background-color: #65B3D8;
 }
 
 .conference-cell .label.name {
@@ -132,6 +136,26 @@
 .conf-selector.popup-view .label {
     -fx-font-size: 1.25em;
     -fx-padding: 1em 4em 1em 1em;
+}
+
+/** Conference Loader Layer **/
+.conf-layer > .label {
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+    -fx-font-weight: bold;
+    -fx-font-size: 1.1em;
+}
+
+.conf-layer > .background {
+    -fx-background-color: white;
+}
+
+.conf-layer > .progress-indicator {
+    -fx-color: #DF9356;
+}
+
+.conf-layer > .progress-indicator:voxxed {
+    -fx-color: #65B3D8;
 }
 
 /** PastConference Message **/
@@ -510,6 +534,46 @@
 
 .sessions-filter > .button-container .button {
     -fx-text-fill: -primary-swatch-500;
+}
+
+.track-filter > .check-box > .track-color0 {
+    -fx-fill: -track-color0;
+}
+
+.track-filter > .check-box > .track-color1 {
+    -fx-fill: -track-color1;
+}
+
+.track-filter > .check-box > .track-color2 {
+    -fx-fill: -track-color2;
+}
+
+.track-filter > .check-box > .track-color3 {
+    -fx-fill: -track-color3;
+}
+
+.track-filter > .check-box > .track-color4 {
+    -fx-fill: -track-color4;
+}
+
+.track-filter > .check-box > .track-color5 {
+    -fx-fill: -track-color5;
+}
+
+.track-filter > .check-box > .track-color6 {
+    -fx-fill: -track-color6;
+}
+
+.track-filter > .check-box > .track-color7 {
+    -fx-fill: -track-color7;
+}
+
+.track-filter > .check-box > .track-color8 {
+    -fx-fill: -track-color8;
+}
+
+.track-filter > .check-box > .track-color9 {
+    -fx-fill: -track-color9;
 }
 
 /********************** Filter Button for Session View ***************************/

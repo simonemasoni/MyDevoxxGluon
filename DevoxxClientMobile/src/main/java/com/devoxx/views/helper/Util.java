@@ -25,7 +25,10 @@
  */
 package com.devoxx.views.helper;
 
+import com.devoxx.model.Conference;
+import com.devoxx.model.Session;
 import com.devoxx.model.Speaker;
+import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
 import com.devoxx.util.ImageCache;
 import com.devoxx.views.ExhibitionMapPresenter;
@@ -42,6 +45,7 @@ import com.gluonhq.charm.glisten.control.Toast;
 import com.gluonhq.charm.glisten.layout.Layer;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import com.gluonhq.cloudlink.client.media.MediaClient;
+import javafx.beans.property.ReadOnlyListProperty;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -55,7 +59,10 @@ import javafx.util.Duration;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.time.ZonedDateTime;
 import java.util.function.Supplier;
+
+import static com.devoxx.util.DevoxxSettings.DAYS_PAST_END_DATE;
 
 public class Util {
 
@@ -72,6 +79,10 @@ public class Util {
     private static Layer pastConferenceMessage;
 
     private Util() {}
+
+    public static boolean isEmptyString(String s) {
+        return s == null || s.equals("");
+    }
 
     public static ImageView getMediaBackgroundImageView() {
         final ImageView imageView = new ImageView(getMediaBackgroundImage());
@@ -208,6 +219,14 @@ public class Util {
         return s == null? "": s.trim();
     }
 
+    /**
+     * A conference is considered from past if
+     * {@link DevoxxSettings#DAYS_PAST_END_DATE} days have passed since its end date
+     */
+    public static boolean isConferenceFromPast(Conference conference) {
+        return conference.getDaysUntilEnd() < -(DAYS_PAST_END_DATE);
+    }
+
     public static void hidePastConferenceMessage() {
         if (pastConferenceMessage != null) {
             pastConferenceMessage.hide();
@@ -240,5 +259,19 @@ public class Util {
             button.setOnAction(e -> pastConferenceMessage.hide());
         }
         pastConferenceMessage.show();
+    }
+
+    public static Session findLastSessionOfLastDay(Service service) {
+        ReadOnlyListProperty<Session> sessions = service.retrieveSessions();
+        Session lastSession = sessions.get(0);
+        for (Session session : sessions) {
+            if (session.getStartDate().toLocalDate().equals(service.getConference().getEndDateTime().toLocalDate())) {
+                ZonedDateTime sessionStartTime = session.getStartDate();
+                if (sessionStartTime.isAfter(lastSession.getStartDate())) {
+                    lastSession = session;
+                }
+            }
+        }
+        return lastSession;
     }
 }

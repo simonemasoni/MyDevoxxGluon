@@ -32,7 +32,6 @@ import com.devoxx.model.Favorite;
 import com.devoxx.model.Feedback;
 import com.devoxx.model.Floor;
 import com.devoxx.model.Note;
-import com.devoxx.model.ProposalType;
 import com.devoxx.model.Session;
 import com.devoxx.model.Speaker;
 import com.devoxx.model.Sponsor;
@@ -67,12 +66,11 @@ public interface Service {
     GluonObservableList<Conference> retrievePastConferences();
 
     /**
-     * Returns a list of conferences.
+     * Returns a list of future conferences.
      * 
-     * @param type whether Devoxx or Voxxed
-     * @return List of Devoxx or Voxxed conferences
+     * @return List of Devoxx and Voxxed conferences
      */
-    GluonObservableList<Conference> retrieveConferences(Conference.Type type);
+    GluonObservableList<Conference> retrieveConferences();
 
     /**
      * Returns details about a conference.
@@ -139,7 +137,7 @@ public interface Service {
      *
      * @return
      */
-    ReadOnlyListProperty<ProposalType> retrieveProposalTypes();
+    ReadOnlyListProperty<SessionType> retrieveSessionTypes();
 
     /**
      * Returns a list of exhibitors at the conference.
@@ -189,8 +187,8 @@ public interface Service {
     boolean isAuthenticated();
     
     /**
-     * The ready property can be set to true when the service has finished loading some resources.
-     * This can be used by the wearable service to add listeners and perform some actions
+     * The ready property is set to true when the service has finished loading conference details
+     * once a new conference is selected from the conference selector.
      * @return a boolean property
      */
     BooleanProperty readyProperty();
@@ -236,6 +234,11 @@ public interface Service {
      * @param sponsor The sponsor for which badges are to be retrieved
      */
     ObservableList<SponsorBadge> retrieveSponsorBadges(Sponsor sponsor);
+
+    /**
+     * Logs out the currently logged in sponsor
+     */
+    void logoutSponsor();
 
     /**
      * Returns a list of favored or scheduled sessions from the cloud.

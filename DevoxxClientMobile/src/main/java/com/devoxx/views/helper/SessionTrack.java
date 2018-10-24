@@ -1,5 +1,5 @@
-/*
- * Copyright (c) 2016, 2018 Gluon Software
+/**
+ * Copyright (c) 2016, Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -23,32 +23,38 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-package com.devoxx.views.cell;
+package com.devoxx.views.helper;
 
-import com.devoxx.util.DevoxxBundle;
-import com.gluonhq.charm.glisten.control.CharmListCell;
-import com.gluonhq.charm.glisten.control.ListTile;
-import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
-import com.devoxx.model.Sponsor;
+import javafx.css.PseudoClass;
 
-public class SponsorHeaderCell extends CharmListCell<Sponsor> {
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    final ListTile tile;
+public class SessionTrack {
 
-    public SponsorHeaderCell() {
-        tile = new ListTile();
-        tile.setPrimaryGraphic(MaterialDesignIcon.PAYMENT.graphic());
-        setText(null);
+    private static Map<String, PseudoClass> trackPseudoClassMap = new HashMap<>();
+    private static List<String> classes = Arrays.asList("track-color0",
+            "track-color1", "track-color2", "track-color3",
+            "track-color4", "track-color5", "track-color6",
+            "track-color7", "track-color8", "track-color9"
+    );
+    private static int index = 0;
+
+    public static PseudoClass fetchPseudoClassForTrack(String trackId) {
+        PseudoClass pseudoClass = trackPseudoClassMap.get(trackId);
+        if (pseudoClass == null) {
+            if (index > classes.size() - 1) {
+                index = 0; // exhausted all colors, re-use
+            }
+            pseudoClass = PseudoClass.getPseudoClass(classes.get(index++));
+            trackPseudoClassMap.put(trackId, pseudoClass);
+        }
+        return pseudoClass;
     }
 
-    @Override
-    public void updateItem(Sponsor item, boolean empty) {
-        super.updateItem(item, empty);
-        if (item != null && !empty) {
-            tile.textProperty().setAll(DevoxxBundle.getString("OTN.SPONSORS.SPONSOR", item.getLevel().toString()));
-            setGraphic(tile);
-        } else {
-            setGraphic(null);
-        }
+    public static String fetchStyleClassForTrack(String trackId) {
+        return fetchPseudoClassForTrack(trackId).getPseudoClassName();
     }
 }

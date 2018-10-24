@@ -31,12 +31,18 @@
 }
 
 /** StatusBar **/
+/* TODO: Uncomment when StatusBar Glisten bug is fixed */
+/*
 .status-bar,
 .status-bar:conf,
 .status-bar:error,
 .status-bar:conf:error {
     -fx-background-color: transparent;
 }
+
+.status-bar:voxxed {
+    -fx-background-color: transparent;
+}*/
 
 /** Views **/
 .conf-selector {
