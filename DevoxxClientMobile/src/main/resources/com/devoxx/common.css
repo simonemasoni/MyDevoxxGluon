@@ -982,8 +982,7 @@
 .coffee-view .submit-button,
 .carve-badge .submit-button,
 .game-view .submit-button,
-.embroider-view .submit-button,
-.vote-view .submit-button {
+.embroider-view .submit-button {
     -fx-background-color: -alternate-color;
     -fx-font-size: 1.2em;
 }
@@ -1314,4 +1313,149 @@
 
 .feedback > .content > .charm-text-area:error > .float {
     -fx-text-fill: #f44336;
+}
+
+
+/** Vote View **/
+.vote-view > .top > .details-box {
+    -fx-alignment: center;
+    -fx-padding: 2em;
+}
+
+.vote-view > .top > .details-box > .title {
+    -fx-font-size: 1.2em;
+    -fx-font-weight: 600;
+}
+
+.vote-view > .top > .rating-box {
+    -fx-alignment: center;
+    -fx-spacing: 1em;
+    -fx-padding: 2em;
+    -fx-border-width: 0.5 0 0.5 0;
+    -fx-border-color: grey;
+}
+
+.vote-view > .top > .rating-box > .rating.label {
+    -fx-font-weight: bold;
+    -fx-font-size: 1.1em;
+}
+
+.vote-view > .top > .rating-box > .rating > .container > .button {
+    -fx-min-height: 25px;
+    -fx-pref-height: 25px;
+    -fx-max-height: 25px;
+    -fx-min-width: 25px;
+    -fx-pref-width: 25px;
+    -fx-max-width: 25px;
+}
+
+.vote-view > .center {
+    -fx-alignment: center;
+    -fx-spacing: 1em;
+    -fx-padding: 1em 0 1em 0;
+}
+
+.vote-view > .center > .compliment {
+    -fx-font-size: 1.3em;
+}
+
+.vote-view > .center > .compliments {
+    -fx-min-height: 110px;
+    -fx-pref-height: 200px;
+}
+
+.vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-background-color: none;
+    -fx-border-width: 0px;
+    -fx-padding: 0.25em 0.25em 0.25em 0.25em; /* 3 3 3 3 */
+    -fx-alignment: top-center;
+    -fx-wrap-text: true;
+    -fx-text-alignment: center;
+    -fx-content-display: top;
+}
+
+.vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell:selected {
+    -fx-scale-x: 1.1;
+    -fx-scale-y: 1.1;
+    -fx-translate-y: 10;
+}
+
+.vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell:selected > .text {
+    -fx-font-weight: bold;
+}
+
+/* Selected rows */
+.vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell:filled:selected {
+    -fx-font-size: 1.01em;
+}
+
+.vote-view > .center > .compliments > .virtual-flow > .scroll-bar {
+    -fx-opacity: 0;
+}
+
+.vote-view > .bottom {
+    -fx-alignment: bottom-center;
+    -fx-spacing: 0.5em;
+    -fx-padding: 1em 2em 1em 2em;
+}
+
+.vote-view > .bottom > .charm-text-area > .text-area {
+    -fx-pref-height: 140px;
+}
+
+.vote-view > .bottom > .submit {
+    -fx-max-width: infinity;
+    -fx-text-fill: white;
+    -fx-font-size: 1.3em;
+}
+
+/** Leaderboard View **/
+
+/** TODO: Doesn't work **/
+.leader-cell:selected {
+    -fx-background-color: transparent;
+}
+
+.leader-cell > .box {
+    -fx-alignment: center;
+    -fx-padding: 0 1em 0 0;
+}
+
+.leader-cell > .box > .position-box {
+    -fx-min-width: 40;
+    -fx-pref-width: 40;
+    -fx-max-width: 40;
+    -fx-alignment: center;
+}
+
+.leader-cell > .box > .position-box > .position {
+    -fx-font-size: 1.2em;
+    -fx-text-fill: grey;
+    -fx-font-weight: bold;
+    -fx-text-alignment: center;
+}
+
+.leader-cell > .box > .position-box > .position.gold {
+    -fx-text-fill: gold;
+}
+
+.leader-cell > .box > .position-box > .position.silver {
+    -fx-text-fill: silver;
+}
+
+.leader-cell > .box > .position-box > .position.bronze {
+    -fx-text-fill: darkgoldenrod;
+}
+
+.leader-cell > .box > .avatar {
+    -charm-radius: 30;
+}
+
+.leader-cell > .box > .name {
+    -fx-font-size: 1.05em;
+    -fx-padding: 0 0 0 0.5em;
+}
+
+.leader-cell > .box > .point {
+    -fx-font-size: 1.1em;
 }
