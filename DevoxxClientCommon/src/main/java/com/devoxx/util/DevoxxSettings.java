@@ -59,7 +59,7 @@ public class DevoxxSettings {
      * boolean option to switch on/off voting
      * Default: false
      */
-    public final static boolean VOTING_TESTS = false;
+    public final static boolean VOTING_TESTS = true;
 
     /**
      * boolean option to switch on/off local notification tests
