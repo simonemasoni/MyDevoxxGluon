@@ -117,6 +117,7 @@ public class DevoxxSettings {
     public static final String BADGE_SPONSOR = "badge-sponsor";
     public static final String RELOAD = "reload";
     public static final String RATING = "rating";
+    public static final String SESSION_FILTER = "session_filter";
     public static final String LOCAL_NOTIFICATION_RATING = "local_notification_rating";
     public static final String VERSION_NO = "version_3_0_0";
 
