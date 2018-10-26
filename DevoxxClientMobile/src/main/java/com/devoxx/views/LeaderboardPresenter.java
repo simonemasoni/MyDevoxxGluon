@@ -49,7 +49,7 @@ public class LeaderboardPresenter extends GluonPresenter<DevoxxApplication> {
 
         leaderboard.setOnShowing(event -> {
             AppBar appBar = getApp().getAppBar();
-            appBar.setTitleText(DevoxxView.LEADERBOARD.getTitle());
+            // appBar.setTitleText(DevoxxView.LEADERBOARD.getTitle());
             appBar.setNavIcon(getApp().getNavMenuButton());
         });
 

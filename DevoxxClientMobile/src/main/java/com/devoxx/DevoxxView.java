@@ -62,7 +62,7 @@ public class DevoxxView {
     public static final AppView FEEDBACK        = view( FeedbackPresenter.class,       MaterialDesignIcon.CREATE,             SKIP_VIEW_STACK);
     public static final AppView CONF_SELECTOR   = view( ConfSelectorPresenter.class,   MaterialDesignIcon.ANNOUNCEMENT,       SHOW_IN_DRAWER, HOME_VIEW, SKIP_VIEW_STACK);
     public static final AppView VOTE            = view( VotePresenter.class,           MaterialDesignIcon.THUMBS_UP_DOWN,     SKIP_VIEW_STACK);
-    public static final AppView LEADERBOARD     = view( LeaderboardPresenter.class,    MaterialDesignIcon.STARS, SHOW_IN_DRAWER);
+    // public static final AppView LEADERBOARD     = view( LeaderboardPresenter.class,    MaterialDesignIcon.STARS, SHOW_IN_DRAWER);
 
     private static AppView view(Class<? extends GluonPresenter<?>> presenterClass, MaterialDesignIcon menuIcon, AppView.Flag... flags ) {
         return REGISTRY.createView( name(presenterClass),
