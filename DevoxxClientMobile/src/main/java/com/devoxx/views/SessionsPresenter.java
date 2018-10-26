@@ -395,7 +395,8 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         final Label header = new Label(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.MSG"));
         final Button no = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.NO"));
         final Button yes = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.YES"));
-        final ImageView devoxxLogo = createDevoxxLogo();
+        final Node icon = MaterialDesignIcon.FILTER_LIST.graphic();
+        icon.getStyleClass().add("filter-grid-icon");
 
         buttons.getChildren().addAll(no, yes);
         header.getStyleClass().add("heading");
@@ -405,16 +406,21 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         yes.getStyleClass().add("yes");
 
         no.setOnAction(e -> {
+            Toast toast = new Toast(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.TOAST.NO"));
+            toast.show();
+
             sessions.setTop(null);
             addCSVToLocalStorage(SESSION_FILTER, service.getConference().getId());
         });
         yes.setOnAction(e -> {
-            no.fire();
-            MobileApplication.getInstance().showLayer(DevoxxApplication.POPUP_FILTER_SESSIONS_MENU);
-            filterPresenter.selectPane(FilterSessionsPresenter.FilterTab.TIME);
+            addCSVToLocalStorage(SESSION_FILTER, service.getConference().getId());
+            filterPresenter.hidePastSession();
+            sessions.setTop(null);
+            Toast toast = new Toast(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.TOAST.YES"));
+            toast.show();
         });
 
-        gridPane.add(devoxxLogo, 0, 0, 1, 2);
+        gridPane.add(icon, 0, 0, 1, 2);
         gridPane.add(header, 1, 0);
         gridPane.add(buttons, 1, 1);
         GridPane.setHgrow(buttons, Priority.ALWAYS);
@@ -440,7 +446,7 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         // We haven't shown the filter dialog for this conference in the past
         if (isOnGoing(conference) && !fetchCSVFromLocalStorage(SESSION_FILTER).contains(conference.getId())) {
             for (Session filteredSession : filteredSessions) {
-                if (filteredSession.getEndDate().isBefore(ZonedDateTime.now(conference.getConferenceZoneId()))) {
+                if (filteredSession.getEndDate().plusHours(1).isBefore(ZonedDateTime.now(conference.getConferenceZoneId()))) {
                     return true;
                 }
             }

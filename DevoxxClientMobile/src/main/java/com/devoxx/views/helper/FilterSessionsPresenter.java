@@ -226,6 +226,18 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
         updateSearchPredicate();
     }
 
+    public void hidePastSession() {
+        periodAll.setSelected(false);
+        for (Node child : periodRadioBtContainer.getChildren()) {
+            if (child.getUserData() == TimePeriod.MORE_THAN_ONE_HOUR_AGO) {
+                ((RadioButton) child).setSelected(true);
+                return;
+            }
+        }
+        selectedTimePeriod = TimePeriod.MORE_THAN_ONE_HOUR_AGO;
+        apply();
+    }
+
     public void selectPane(FilterTab filterTab) {
         switch (filterTab) {
             case DAY:

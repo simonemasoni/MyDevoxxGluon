@@ -103,3 +103,7 @@
     -fx-font-size: 1.1em;
     -fx-text-fill: #fff;
 }
+.filter-grid-icon {
+   -fx-text-fill: #fff;
+    -fx-font-size: 3.2em;
+}
