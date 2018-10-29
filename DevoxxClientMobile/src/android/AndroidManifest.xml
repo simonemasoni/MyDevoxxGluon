@@ -87,7 +87,7 @@
         <activity android:name="com.gluonhq.impl.charm.down.plugins.android.PermissionRequestActivity" />
 
         <activity android:name="com.gluonhq.impl.charm.down.plugins.android.scan.zxing.CaptureActivity"
-                android:screenOrientation="sensorPortrait"
+                android:screenOrientation="sensorLandscape"
                 android:clearTaskOnLaunch="true"
                 android:stateNotNeeded="true"
                 android:windowSoftInputMode="stateAlwaysHidden">
