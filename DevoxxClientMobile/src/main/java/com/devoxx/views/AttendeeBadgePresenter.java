@@ -128,34 +128,40 @@ public class AttendeeBadgePresenter extends GluonPresenter<DevoxxApplication> {
         
         if (scan == null) {
             scan = new FloatingActionButton("", e -> {
+                if (DevoxxSettings.BADGE_TESTS) {
+                    addBadge(badges, Util.getDummyQR());
+                    return;
+                }
                 Services.get(BarcodeScanService.class).ifPresent(s -> {
                     final Optional<String> scanQr = s.scan(DevoxxBundle.getString("OTN.BADGES.ATTENDEE.QR.TITLE"), null, null);
-                    scanQr.ifPresent(qr -> {
-                        Badge badge = new Badge(qr);
-                        if (badge.getBadgeId() != null) {
-                            boolean exists = false;
-                            for (Badge b : badges) {
-                                if (b.getBadgeId().equals(badge.getBadgeId())) {
-                                    Toast toast = new Toast(DevoxxBundle.getString("OTN.BADGES.QR.EXISTS"));
-                                    toast.show();
-                                    exists = true;
-                                    break;
-                                }
-                            }
-                            if (!exists) {
-                                attendeeBadges.itemsProperty().add(badge);
-                                DevoxxView.BADGE.switchView().ifPresent(presenter -> ((BadgePresenter) presenter).setBadge(badge, ATTENDEE));
-                            }
-                        } else {
-                            Toast toast = new Toast(DevoxxBundle.getString("OTN.BADGES.BAD.QR"));
-                            toast.show();
-                        }
-                    });
+                    scanQr.ifPresent(qr -> addBadge(badges, qr));
                 });
             });
             scan.getStyleClass().add("badge-scanner");
         }
         scan.show();
+    }
+
+    private void addBadge(ObservableList<Badge> badges, String qr) {
+        Badge badge = new Badge(qr);
+        if (badge.getBadgeId() != null) {
+            boolean exists = false;
+            for (Badge b : badges) {
+                if (b.getBadgeId().equals(badge.getBadgeId())) {
+                    Toast toast = new Toast(DevoxxBundle.getString("OTN.BADGES.QR.EXISTS"));
+                    toast.show();
+                    exists = true;
+                    break;
+                }
+            }
+            if (!exists) {
+                attendeeBadges.itemsProperty().add(badge);
+                DevoxxView.BADGE.switchView().ifPresent(presenter -> ((BadgePresenter) presenter).setBadge(badge, ATTENDEE));
+            }
+        } else {
+            Toast toast = new Toast(DevoxxBundle.getString("OTN.BADGES.BAD.QR"));
+            toast.show();
+        }
     }
 
     private MenuItem getBadgeChangeMenuItem(String text) {

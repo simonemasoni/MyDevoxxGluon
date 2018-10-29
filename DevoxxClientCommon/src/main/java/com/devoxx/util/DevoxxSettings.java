@@ -62,6 +62,12 @@ public class DevoxxSettings {
     public final static boolean VOTING_TESTS = false;
 
     /**
+     * Setting this option to true will allow to scan a random badge by pressing the scan FAB
+     * Default: false
+     */
+    public final static boolean BADGE_TESTS = false;
+
+    /**
      * boolean option to switch on/off local notification tests
      * Default: false
      */
