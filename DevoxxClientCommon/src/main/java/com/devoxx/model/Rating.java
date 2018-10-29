@@ -7,6 +7,8 @@ public class Rating {
     private int rating;
     private List<RatingData> data;
 
+    public Rating() {}
+
     public Rating(int rating, List<RatingData> data) {
         this.rating = rating;
         this.data = data;

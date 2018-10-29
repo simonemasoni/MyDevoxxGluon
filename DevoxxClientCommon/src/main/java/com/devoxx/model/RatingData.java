@@ -5,6 +5,8 @@ public class RatingData {
     private String text;
     private String imageUrl;
 
+    public RatingData() {}
+
     public RatingData(String text, String imageUrl) {
         this.text = text;
         this.imageUrl = imageUrl;

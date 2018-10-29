@@ -66,7 +66,7 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
     @FXML private Label ratingLabel;
     @FXML private Rating rating;
     @FXML private Label compliment;
-    @FXML private ListView<com.devoxx.model.RatingData> comments;
+    @FXML private ListView<RatingData> comments;
     @FXML private TextArea feedback;
 
     @Inject private Service service;
@@ -98,40 +98,15 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
             rating.requestFocus();
         });
 
+        updateRating((int) rating.getRating());
+
         rating.ratingProperty().addListener((o, ov, nv) -> {
             comments.scrollTo(0);
-            int rating = nv.intValue();
-            switch (rating) {
-                case 5:
-                    ratingLabel.setText(bundle.getString("OTN.VOTE.EXCELLENT"));
-                    compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
-                    comments.setItems(service.retrieveVoteTexts(5));
-                    break;
-                case 4:
-                    ratingLabel.setText(bundle.getString("OTN.VOTE.VERY.GOOD"));
-                    compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
-                    comments.setItems(service.retrieveVoteTexts(4));
-                    break;
-                case 3:
-                    ratingLabel.setText(bundle.getString("OTN.VOTE.GOOD"));
-                    compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
-                    comments.setItems(service.retrieveVoteTexts(3));
-                    break;
-                case 2:
-                    ratingLabel.setText(bundle.getString("OTN.VOTE.FAIR"));
-                    compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
-                    comments.setItems(service.retrieveVoteTexts(2));
-                    break;
-                case 1:
-                    ratingLabel.setText(bundle.getString("OTN.VOTE.POOR"));
-                    compliment.setText(bundle.getString("OTN.VOTE.IMPROVEMENT"));
-                    comments.setItems(service.retrieveVoteTexts(1));
-                    break;
-            }
+            updateRating(nv.intValue());
         });
 
         comments.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        comments.setCellFactory(param -> new UnselectListCell<com.devoxx.model.RatingData>() {
+        comments.setCellFactory(param -> new UnselectListCell<RatingData>() {
 
             @Override
             protected void updateItem(RatingData item, boolean empty) {
@@ -187,6 +162,35 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
         return vote;
     }
 
+    private void updateRating(int rating) {
+        switch (rating) {
+            case 5:
+                ratingLabel.setText(bundle.getString("OTN.VOTE.EXCELLENT"));
+                compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
+                comments.setItems(service.retrieveVoteTexts(5));
+                break;
+            case 4:
+                ratingLabel.setText(bundle.getString("OTN.VOTE.VERY.GOOD"));
+                compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
+                comments.setItems(service.retrieveVoteTexts(4));
+                break;
+            case 3:
+                ratingLabel.setText(bundle.getString("OTN.VOTE.GOOD"));
+                compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
+                comments.setItems(service.retrieveVoteTexts(3));
+                break;
+            case 2:
+                ratingLabel.setText(bundle.getString("OTN.VOTE.FAIR"));
+                compliment.setText(bundle.getString("OTN.VOTE.IMPROVEMENT"));
+                comments.setItems(service.retrieveVoteTexts(2));
+                break;
+            case 1:
+                ratingLabel.setText(bundle.getString("OTN.VOTE.POOR"));
+                compliment.setText(bundle.getString("OTN.VOTE.IMPROVEMENT"));
+                comments.setItems(service.retrieveVoteTexts(1));
+                break;
+        }
+    }
 
     private class UnselectListCell<T> extends ListCell<T> {
 
