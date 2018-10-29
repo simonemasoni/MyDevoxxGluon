@@ -674,17 +674,6 @@
     -fx-wrap-text: false;
 }
 
-/** Sponsor View **/
-.sponsor-view > .content {
-    -fx-alignment: CENTER;
-    -fx-spacing: 1em;
-    -fx-padding: 1em;
-}
-
-.sponsor-view > .content > .label {
-    -fx-text-fill: #ff133c;
-}
-
 /** Vote Pane **/
 
 .vote-pane {
