@@ -30,7 +30,6 @@
 }
 
 .root {
-    -fx-font-family: "FakeFontFamily";  /*forces default OS font family selection*/
     -track-color0: #b0233d;
     -track-color1: #9c27B0;
     -track-color2: #8bc24a;
@@ -943,7 +942,6 @@
 
 .dialog .dialog-badge-description {
     -fx-font-size: 1em;
-    -fx-font-family: "FakeFontFamily";  /* forces OS default font family selection */
     -fx-wrap-text: true;
 }
 
