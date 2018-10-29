@@ -53,6 +53,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Tab;
 import javafx.scene.control.TabPane;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -226,17 +227,16 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
         updateSearchPredicate();
     }
 
-    public void selectPane(FilterTab filterTab) {
-        switch (filterTab) {
-            case DAY:
-                tabPane.getSelectionModel().select(tabDay); break;
-            case TRACK:
-                tabPane.getSelectionModel().select(tabTrack); break;
-            case TYPE:
-                tabPane.getSelectionModel().select(tabType); break;
-            case TIME:
-                tabPane.getSelectionModel().select(tabTimePeriod); break;
+    public void hidePastSession() {
+        periodAll.setSelected(false);
+        for (Toggle toggle : radioButtonGroup.getToggles()) {
+            if (toggle.getUserData() == TimePeriod.MORE_THAN_ONE_HOUR_AGO) {
+                toggle.setSelected(true);
+                break;
+            }
         }
+        selectedTimePeriod = TimePeriod.MORE_THAN_ONE_HOUR_AGO;
+        apply();
     }
 
     private void updateTimePeriodSelection() {
@@ -426,10 +426,4 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
         return false;
     }
 
-    public enum FilterTab {
-        DAY,
-        TRACK,
-        TYPE,
-        TIME
-    }
 }
