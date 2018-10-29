@@ -121,10 +121,10 @@ public class SponsorBadgePresenter extends GluonPresenter<DevoxxApplication> {
                     service.store(DevoxxSettings.BADGE_TYPE, BadgeType.SPONSOR.toString());
                     service.store(DevoxxSettings.BADGE_SPONSOR, sponsor.toCSV());
                 });
-                final Toast toast = new Toast(DevoxxBundle.getString("OTN.BADGES.LOGIN.SPONSOR", sponsor.getName()), Toast.LENGTH_LONG);
-                toast.show();
                 loadAuthenticatedView(sponsor);
                 password.clear();
+                final Toast toast = new Toast(DevoxxBundle.getString("OTN.BADGES.LOGIN.SPONSOR", sponsor.getName()), Toast.LENGTH_LONG);
+                toast.show();
             } else {
                 message.setText(DevoxxBundle.getString("OTN.SPONSOR.INCORRECT.PASSWORD"));
             } 
@@ -151,7 +151,7 @@ public class SponsorBadgePresenter extends GluonPresenter<DevoxxApplication> {
         appBar.setTitleText(DevoxxBundle.getString("OTN.SPONSOR.BADGES.FOR", sponsor.getName()));
         appBar.setNavIcon(getApp().getNavMenuButton());
         appBar.getActionItems().setAll(shareButton);
-        appBar.getMenuItems().addAll(getBadgeChangeMenuItem("Logout"));
+        appBar.getMenuItems().setAll(getBadgeChangeMenuItem("Logout"));
         
         shareButton.disableProperty().bind(sponsorBadges.itemsProperty().emptyProperty());
 

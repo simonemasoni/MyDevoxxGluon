@@ -78,7 +78,14 @@ public class BadgesPresenter extends GluonPresenter<DevoxxApplication> {
         } else {
             switch (badgeType) {
                 case SPONSOR:
-                    showSponsor();
+                    // BadgeType is Sponsor but sponsor details are incomplete
+                    // we should show sponsor/attendee selection
+                    Optional<Sponsor> savedSponsor = fetchSavedSponsor();
+                    if (savedSponsor.isPresent()) {
+                        showSponsor();
+                    } else {
+                        badgesView.setCenter(content);
+                    }
                     break;
                 case ATTENDEE:
                     showAttendee();
@@ -104,15 +111,20 @@ public class BadgesPresenter extends GluonPresenter<DevoxxApplication> {
     }
 
     private void showSponsor() {
+        Optional<Sponsor> savedSponsor = fetchSavedSponsor();
+        if (savedSponsor.isPresent()){
+            DevoxxView.SPONSOR_BADGE.switchView().ifPresent(presenter -> ((SponsorBadgePresenter) presenter).setSponsor(savedSponsor.get()));
+        } else {
+            DevoxxView.SPONSORS.switchView();
+        }
+    }
+
+    private Optional<Sponsor> fetchSavedSponsor() {
         final Optional<SettingsService> settingsService = Services.get(SettingsService.class);
         if (settingsService.isPresent()) {
             SettingsService service = settingsService.get();
-            final Sponsor sponsor = Sponsor.fromCSV(service.retrieve(DevoxxSettings.BADGE_SPONSOR));
-            if (sponsor == null) {
-                DevoxxView.SPONSORS.switchView();
-            } else {
-                DevoxxView.SPONSOR_BADGE.switchView().ifPresent(presenter -> ((SponsorBadgePresenter) presenter).setSponsor(sponsor));
-            }
+            return Optional.ofNullable(Sponsor.fromCSV(service.retrieve(DevoxxSettings.BADGE_SPONSOR)));
         }
+        return Optional.empty();
     }
 }

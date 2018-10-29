@@ -62,7 +62,7 @@ public class Sponsor extends Searchable implements Mergeable<Sponsor> {
     }
 
     public String getSlug() {
-        return slug;
+        return slug == null ? name.toLowerCase().replaceAll(" ", "-") : slug;
     }
 
     public void setSlug(String slug) {
