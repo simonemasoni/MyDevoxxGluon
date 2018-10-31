@@ -1247,7 +1247,7 @@
 /* Rating Box */
 .review-grid {
     -fx-padding: 0.2em 0.4em 0.2em 0.4em; 
-    -fx-background-color: #353C5C;
+    -fx-background-color: -alternate-color;
 }
 
 .review-grid > .heading {
@@ -1255,6 +1255,7 @@
     -fx-padding: 0.5em 0 0 0.5em;
     -fx-font-size: 1.1em;
     -fx-font-weight: bold;
+    -fx-wrap-text: true;
 }
 
 .review-grid > .logo.image-view {
