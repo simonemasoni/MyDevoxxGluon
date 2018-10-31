@@ -46,6 +46,7 @@ import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.control.BottomNavigation;
 import com.gluonhq.charm.glisten.control.BottomNavigationButton;
 import com.gluonhq.charm.glisten.control.CharmListView;
+import com.gluonhq.charm.glisten.control.Message;
 import com.gluonhq.charm.glisten.control.Toast;
 import com.gluonhq.charm.glisten.layout.layer.SidePopupView;
 import com.gluonhq.charm.glisten.mvc.View;
@@ -406,7 +407,7 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         yes.getStyleClass().add("yes");
 
         no.setOnAction(e -> {
-            Toast toast = new Toast(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.TOAST.NO"));
+            Toast toast = new Toast(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.TOAST.NO"), Message.LENGTH_LONG);
             toast.show();
 
             sessions.setTop(null);
@@ -416,7 +417,7 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
             addCSVToLocalStorage(SESSION_FILTER, service.getConference().getId());
             filterPresenter.hidePastSession();
             sessions.setTop(null);
-            Toast toast = new Toast(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.TOAST.YES"));
+            Toast toast = new Toast(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.TOAST.YES"), Message.LENGTH_LONG);
             toast.show();
         });
 
