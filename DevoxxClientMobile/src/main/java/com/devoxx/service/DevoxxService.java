@@ -69,7 +69,6 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -79,7 +78,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.devoxx.views.helper.Util.safeStr;
+import static com.devoxx.util.DevoxxSettings.LOCAL_NOTIFICATION_RATING;
+import static com.devoxx.util.DevoxxSettings.SESSION_FILTER;
+import static com.devoxx.views.helper.Util.*;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
 public class DevoxxService implements Service {
@@ -110,6 +111,9 @@ public class DevoxxService implements Service {
                     }
                 });
             });
+
+            // Remove Sessions filter key-value
+            Services.get(SettingsService.class).ifPresent(ss -> ss.remove(SESSION_FILTER));
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
@@ -383,23 +387,18 @@ public class DevoxxService implements Service {
     @Override
     public boolean showRatingDialog() {
         if (getConference() == null) return false;
-        return Services.get(SettingsService.class).map(ss -> {
-            String retrieve = ss.retrieve(getConference().getId() + "_" + DevoxxSettings.RATING);
-            if (retrieve == null) {
-                ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(this).getStartDate().minusHours(1);
-                if (DevoxxSettings.NOTIFICATION_TESTS) {
-                    dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
-                }
-                ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
-                if (currentTime.isAfter(dateTimeRating)) {
-                    ss.store(getConference().getId() + "_" + DevoxxSettings.RATING, "SHOW");
-                    return true;
-                }
-            } else if (retrieve.equalsIgnoreCase("SHOW")) {
+        if (!fetchCSVFromLocalStorage(DevoxxSettings.RATING).contains(getConference().getId())) {
+            ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(this).getStartDate().minusHours(1);
+            if (DevoxxSettings.NOTIFICATION_TESTS) {
+                dateTimeRating = dateTimeRating.minus(DevoxxSettings.NOTIFICATION_OFFSET, SECONDS);
+            }
+            ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), ZoneId.systemDefault());
+            // isOnGoing() checks rating dialog to be shown for past conferences
+            if (isOnGoing(getConference()) && currentTime.isAfter(dateTimeRating)) {
                 return true;
             }
-            return false;
-        }).orElse(false);
+        }
+        return false;
     }
 
     @Override
@@ -809,6 +808,23 @@ public class DevoxxService implements Service {
     }
 
     @Override
+    public ObservableList<RatingData> retrieveVoteTexts(int rating) {
+        ObservableList<RatingData> ratingData = FXCollections.observableArrayList();
+        RemoteFunctionList fnTexts = RemoteFunctionBuilder.create("voteTexts").list();
+        GluonObservableList<Rating> voteTexts = fnTexts.call(Rating.class);
+        voteTexts.setOnSucceeded(e -> {
+            for (Rating voteText : voteTexts) {
+                if (voteText.getRating() == rating) {
+                    ratingData.setAll(voteText.getData());
+                    break;
+                }
+            }
+        });
+        voteTexts.setOnFailed(e -> LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "voteTexts"), e.getSource().getException()));
+        return ratingData;
+    }
+
+    @Override
     public GluonObservableObject<String> authenticateSponsor() {
         RemoteFunctionObject fnValidateSponsor = RemoteFunctionBuilder.create("validateSponsor").cachingEnabled(false).object();
         return fnValidateSponsor.call(String.class);
@@ -1041,20 +1057,11 @@ public class DevoxxService implements Service {
     }
 
     private void addLocalNotification() {
-        Services.get(SettingsService.class).ifPresent(ss -> {
-            String conferenceList = ss.retrieve(DevoxxSettings.LOCAL_NOTIFICATION_RATING);
-            if (conferenceList != null && !conferenceList.isEmpty()) {
-                if (Arrays.asList(conferenceList.split(",")).contains(getConference().getId())) {
-                    return;
-                }
-                conferenceList = conferenceList + "," + getConference().getId();
-            } else {
-                conferenceList = getConference().getId();
-            }
+        if (!fetchCSVFromLocalStorage(LOCAL_NOTIFICATION_RATING).contains(getConference().getId())) {
             DevoxxNotifications notifications = Injector.instantiateModelOrService(DevoxxNotifications.class);
             notifications.addRatingNotification(getConference());
-            ss.store(DevoxxSettings.LOCAL_NOTIFICATION_RATING, conferenceList);
-        });
+            addCSVToLocalStorage(LOCAL_NOTIFICATION_RATING, getConference().getId());
+        }
     }
 
     private void finishNotificationsPreloading() {

@@ -295,4 +295,9 @@ public interface Service {
      * @return Location of the selected conference
      */
     GluonObservableObject<Location> retrieveLocation();
+
+    /**
+     * Fetches a map of vote texts for each rating
+     */
+    ObservableList<RatingData> retrieveVoteTexts(int rating);
 }

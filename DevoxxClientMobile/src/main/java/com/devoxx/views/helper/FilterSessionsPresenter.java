@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, 2017, Gluon Software
+ * Copyright (c) 2016, 2018 Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -52,6 +52,8 @@ import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -70,7 +72,7 @@ import static com.devoxx.views.helper.SessionTrack.fetchStyleClassForTrack;
 
 public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
 
-    private static final TimePeriod DEFAULT_TIME_PERIOD = TimePeriod.MORE_THAN_ONE_HOUR_AGO;
+    private static final TimePeriod DEFAULT_TIME_PERIOD = TimePeriod.ALL;
 
     @FXML private VBox dayFilter;
 
@@ -80,6 +82,7 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
 
     @FXML private VBox timePeriodFilter;
 
+    @FXML private TabPane tabPane;
     @FXML private Tab tabDay;
     @FXML private Tab tabTrack;
     @FXML private Tab tabType;
@@ -181,7 +184,7 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
                 selectedTimePeriod = (TimePeriod) radioButton.getUserData();
                 updateIsFilterApplied();
             });
-            if (timePeriod == DEFAULT_TIME_PERIOD) {
+            if (timePeriod == TimePeriod.MORE_THAN_ONE_HOUR_AGO) {
                 radioButton.setSelected(true);
             }
             periodRadioBtContainer.getChildren().add(radioButton);
@@ -222,6 +225,18 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
         BorderPane.setAlignment(buttonContainer, Pos.BOTTOM_RIGHT);
 
         updateSearchPredicate();
+    }
+
+    public void hidePastSession() {
+        periodAll.setSelected(false);
+        for (Toggle toggle : radioButtonGroup.getToggles()) {
+            if (toggle.getUserData() == TimePeriod.MORE_THAN_ONE_HOUR_AGO) {
+                toggle.setSelected(true);
+                break;
+            }
+        }
+        selectedTimePeriod = TimePeriod.MORE_THAN_ONE_HOUR_AGO;
+        apply();
     }
 
     private void updateTimePeriodSelection() {
@@ -410,4 +425,5 @@ public class FilterSessionsPresenter extends GluonPresenter<DevoxxApplication> {
         }
         return false;
     }
+
 }

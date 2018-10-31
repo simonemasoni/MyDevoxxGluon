@@ -61,6 +61,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Supplier;
@@ -276,6 +277,46 @@ public class Util {
             }
         }
         return lastSession;
+    }
+
+    /**
+     * Adds a value against a key in local storage in csv format
+     * @param key key against which the value is to be stored
+     * @param newValue The new value to the added
+     */
+    public static void addCSVToLocalStorage(String key, String newValue) {
+        Services.get(SettingsService.class).ifPresent(ss -> {
+            String previousValues = ss.retrieve(key);
+            if (previousValues != null && !previousValues.isEmpty()) {
+                ss.store(key, previousValues + "," + newValue);
+            } else {
+                ss.store(key, newValue);
+            }
+        });
+    }
+
+    /**
+     * Accepts a key and returns the CSV format values saved against the key as a List
+     * @param key Key against which values are stored
+     * @return List of values if values are present else empty list.
+     */
+    public static List<String> fetchCSVFromLocalStorage(String key) {
+        return Services.get(SettingsService.class).map(ss -> {
+            String values = ss.retrieve(key);
+            if (values != null && !values.isEmpty()) {
+                return Arrays.asList(values.split(","));
+            }
+            return Collections.<String>emptyList();
+        }).orElse(Collections.emptyList());
+    }
+
+    /**
+     * Returns true if the supplied conference has started but is yet to end
+     * @param conference Conference to check
+     * @return True if conference has started but is yet to end
+     */
+    public static boolean isOnGoing(Conference conference) {
+        return conference.getDaysUntilStart() <= 0 && conference.getDaysUntilEnd() >= 0;
     }
 
     public static String getDummyQR() {
