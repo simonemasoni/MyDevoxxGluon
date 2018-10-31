@@ -50,6 +50,7 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -69,6 +70,7 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
     @FXML private Label ratingLabel;
     @FXML private Rating rating;
     @FXML private Label compliment;
+    @FXML private TextField feedbackTF;
     @FXML private ListView<RatingData> comments;
 
     @Inject private Service service;
@@ -91,9 +93,7 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
                     });
                 });
             }));
-            appBar.getActionItems().setAll(MaterialDesignIcon.SEND.button(e -> {
-                submit();
-            }));
+            appBar.getActionItems().clear();
         });
 
         updateRating((int) rating.getRating());
@@ -215,6 +215,7 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
                 feedbackDialog.hide();
             });
             feedbackDialog.getButtons().addAll(cancelButton, saveButton);
+            feedbackDialog.setOnCloseRequest(e -> feedbackTF.setText(feedback.getText()));
         }
         feedbackDialog.showAndWait();
     }

@@ -1399,10 +1399,6 @@
     -fx-padding: 1em 2em 1em 2em;
 }
 
-.vote-view > .bottom > .charm-text-area > .text-area {
-    -fx-pref-height: 140px;
-}
-
 .vote-view > .bottom > .submit {
     -fx-max-width: infinity;
     -fx-text-fill: white;
