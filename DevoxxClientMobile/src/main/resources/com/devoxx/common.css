@@ -1383,7 +1383,28 @@
 .vote-view > .bottom {
     -fx-alignment: bottom-center;
     -fx-spacing: 1.0em;
-    -fx-padding: 1em 2em 1em 2em;
+    -fx-padding: 2em;
+}
+
+.vote-view > .bottom > .feedback {
+    -fx-max-width: infinity;
+    -fx-font-size: 1em;
+    -fx-padding: 1.28mm;
+    -fx-background-color: transparent;
+    -fx-background-insets: 0;
+    -fx-focus-color: transparent;
+    -fx-background-radius: 0;
+    -fx-text-fill: inherit;
+    -fx-min-height: 4em;
+    -fx-max-height: 10em;
+    -fx-alignment: bottom-left;
+    -fx-border-width: 0 0 1px 0, 0 0 1px 0;
+    -fx-border-insets: 0 0 -1px 0, 0 0 -1px 0;
+    -fx-border-color: transparent transparent -primary-swatch-500 transparent, transparent transparent transparent transparent;
+}
+
+.vote-view > .bottom > .feedback:empty {
+    -fx-text-fill: gray;
 }
 
 .vote-view > .bottom > .submit {

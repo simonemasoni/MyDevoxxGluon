@@ -50,7 +50,6 @@ import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.MultipleSelectionModel;
 import javafx.scene.control.SelectionMode;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
@@ -61,20 +60,25 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.ResourceBundle;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
+import javafx.css.PseudoClass;
 
 public class VotePresenter extends GluonPresenter<DevoxxApplication> {
 
-    @FXML private ResourceBundle bundle = ResourceBundle.getBundle("com/devoxx/views/vote");
+    private static final PseudoClass EMPTY = PseudoClass.getPseudoClass("empty");
+            
     @FXML private View vote;
     @FXML private Label title;
     @FXML private Label ratingLabel;
     @FXML private Rating rating;
     @FXML private Label compliment;
-    @FXML private TextField feedbackTF;
+    @FXML private Label feedbackLabel;
     @FXML private ListView<RatingData> comments;
 
     @Inject private Service service;
-
+    @FXML private ResourceBundle resources;
+    
     private Session session;
     private TextArea feedback;
     private Dialog<String> feedbackDialog;
@@ -134,7 +138,18 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
         if (feedback != null) {
             feedback.setText("");
         }
-        feedbackTF.clear();
+        feedbackLabel.textProperty().addListener((obs, ov, nv) -> {
+            if (nv == null || nv.isEmpty()) {
+                feedbackLabel.setText(resources.getString("OTN.VOTE.BUTTON.TEXT"));
+                feedbackLabel.pseudoClassStateChanged(EMPTY, true);
+            } else {
+                feedbackLabel.pseudoClassStateChanged(EMPTY, false);
+            }
+        });
+        feedbackLabel.setText(resources.getString("OTN.VOTE.BUTTON.TEXT"));
+        feedbackLabel.pseudoClassStateChanged(EMPTY, true);
+        feedbackLabel.setWrapText(true);
+        
         rating.setRating(4);
         comments.getSelectionModel().clearSelection();
     }
@@ -172,28 +187,28 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
     private void updateRating(int rating) {
         switch (rating) {
             case 5:
-                ratingLabel.setText(bundle.getString("OTN.VOTE.EXCELLENT"));
-                compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
+                ratingLabel.setText(resources.getString("OTN.VOTE.EXCELLENT"));
+                compliment.setText(resources.getString("OTN.VOTE.COMPLIMENT"));
                 comments.setItems(service.retrieveVoteTexts(5));
                 break;
             case 4:
-                ratingLabel.setText(bundle.getString("OTN.VOTE.VERY.GOOD"));
-                compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
+                ratingLabel.setText(resources.getString("OTN.VOTE.VERY.GOOD"));
+                compliment.setText(resources.getString("OTN.VOTE.COMPLIMENT"));
                 comments.setItems(service.retrieveVoteTexts(4));
                 break;
             case 3:
-                ratingLabel.setText(bundle.getString("OTN.VOTE.GOOD"));
-                compliment.setText(bundle.getString("OTN.VOTE.COMPLIMENT"));
+                ratingLabel.setText(resources.getString("OTN.VOTE.GOOD"));
+                compliment.setText(resources.getString("OTN.VOTE.COMPLIMENT"));
                 comments.setItems(service.retrieveVoteTexts(3));
                 break;
             case 2:
-                ratingLabel.setText(bundle.getString("OTN.VOTE.FAIR"));
-                compliment.setText(bundle.getString("OTN.VOTE.IMPROVEMENT"));
+                ratingLabel.setText(resources.getString("OTN.VOTE.FAIR"));
+                compliment.setText(resources.getString("OTN.VOTE.IMPROVEMENT"));
                 comments.setItems(service.retrieveVoteTexts(2));
                 break;
             case 1:
-                ratingLabel.setText(bundle.getString("OTN.VOTE.POOR"));
-                compliment.setText(bundle.getString("OTN.VOTE.IMPROVEMENT"));
+                ratingLabel.setText(resources.getString("OTN.VOTE.POOR"));
+                compliment.setText(resources.getString("OTN.VOTE.IMPROVEMENT"));
                 comments.setItems(service.retrieveVoteTexts(1));
                 break;
         }
@@ -207,16 +222,36 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
         feedback.setUserData(feedback.getText());
         if (feedbackDialog == null) {
             feedbackDialog = new Dialog<>();
-            feedbackDialog.setContent(new VBox(10, new Label(bundle.getString("OTN.VOTE.TEXT")), feedback));
-            Button saveButton = new Button("Save");
-            saveButton.setOnAction(e -> feedbackDialog.hide());
-            Button cancelButton = new Button("Cancel");
+            feedbackDialog.setContent(new VBox(10, new Label(resources.getString("OTN.VOTE.TEXT")), feedback));
+            feedbackDialog.setOnShown(e -> 
+                    feedbackDialog.getContent().getParent().getParent().setTranslateY(-100));
+            feedbackDialog.setOnHiding(e -> vote.requestFocus());
+            Button saveButton = new Button(resources.getString("OTN.VOTE.BUTTON.ACCEPT"));
+            saveButton.setOnAction(e -> {
+                feedbackDialog.hide();
+            });
+            Button cancelButton = new Button(resources.getString("OTN.VOTE.BUTTON.CANCEL"));
             cancelButton.setOnAction(e -> {
                 feedback.setText((String) feedback.getUserData());
                 feedbackDialog.hide();
             });
             feedbackDialog.getButtons().addAll(cancelButton, saveButton);
-            feedbackDialog.setOnCloseRequest(e -> feedbackTF.setText(feedback.getText()));
+            feedbackDialog.setOnCloseRequest(e -> feedbackLabel.setText(feedback.getText()));
+            if (com.gluonhq.charm.down.Platform.isAndroid()) {
+                feedback.skinProperty().addListener(new InvalidationListener() {
+                    @Override
+                    public void invalidated(Observable observable) {
+                        if (feedback.getSkin() != null) {
+                            feedback.getChildrenUnmodifiable().get(0).setOnMouseClicked(e -> {
+                                feedback.getParent().requestFocus();
+                                feedback.getChildrenUnmodifiable().get(0).requestFocus();
+                            });
+                            feedback.skinProperty().removeListener(this);
+                        }
+                    }
+                });
+                
+            }
         }
         feedbackDialog.showAndWait();
     }
