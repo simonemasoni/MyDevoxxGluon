@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, Gluon Software
+ * Copyright (c) 2016, 2018 Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -36,6 +36,7 @@ import com.devoxx.views.helper.Util;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.AppBar;
+import com.gluonhq.charm.glisten.control.Dialog;
 import com.gluonhq.charm.glisten.control.Rating;
 import com.gluonhq.charm.glisten.control.TextArea;
 import com.gluonhq.charm.glisten.control.Toast;
@@ -43,6 +44,7 @@ import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -51,6 +53,7 @@ import javafx.scene.control.SelectionMode;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.VBox;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -67,11 +70,12 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
     @FXML private Rating rating;
     @FXML private Label compliment;
     @FXML private ListView<RatingData> comments;
-    @FXML private TextArea feedback;
 
     @Inject private Service service;
 
     private Session session;
+    private TextArea feedback;
+    private Dialog<String> feedbackDialog;
 
     public void initialize() {
 
@@ -90,12 +94,6 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
             appBar.getActionItems().setAll(MaterialDesignIcon.SEND.button(e -> {
                 submit();
             }));
-        });
-
-        vote.setOnShown(e -> {
-            // Make sure that TextField doesn't have focus
-            // and is able to show the prompt text
-            rating.requestFocus();
         });
 
         updateRating((int) rating.getRating());
@@ -132,6 +130,12 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
         if (session != null) {
             title.setText(session.getTitle());
         }
+        // Remove last feedback
+        if (feedback != null) {
+            feedback.setText("");
+        }
+        rating.setRating(4);
+        comments.getSelectionModel().clearSelection();
     }
 
     @FXML
@@ -157,7 +161,9 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
         if (comments.getSelectionModel().getSelectedItem() != null) {
             vote.setDelivery(comments.getSelectionModel().getSelectedItem().getText());
         }
-        vote.setOther(feedback.getText());
+        if (feedback != null) {
+            vote.setOther(feedback.getText());
+        }
         vote.setValue((int) rating.getRating());
         return vote;
     }
@@ -190,6 +196,27 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
                 comments.setItems(service.retrieveVoteTexts(1));
                 break;
         }
+    }
+
+    @FXML
+    private void showFeedback() {
+        if (feedback == null) {
+            feedback = new TextArea();
+        }
+        feedback.setUserData(feedback.getText());
+        if (feedbackDialog == null) {
+            feedbackDialog = new Dialog<>();
+            feedbackDialog.setContent(new VBox(10, new Label(bundle.getString("OTN.VOTE.TEXT")), feedback));
+            Button saveButton = new Button("Save");
+            saveButton.setOnAction(e -> feedbackDialog.hide());
+            Button cancelButton = new Button("Cancel");
+            cancelButton.setOnAction(e -> {
+                feedback.setText((String) feedback.getUserData());
+                feedbackDialog.hide();
+            });
+            feedbackDialog.getButtons().addAll(cancelButton, saveButton);
+        }
+        feedbackDialog.showAndWait();
     }
 
     private class UnselectListCell<T> extends ListCell<T> {
