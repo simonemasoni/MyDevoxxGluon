@@ -27,6 +27,7 @@ package com.devoxx.views;
 
 import com.devoxx.DevoxxApplication;
 import com.devoxx.DevoxxView;
+import com.devoxx.model.Conference;
 import com.devoxx.model.Session;
 import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
@@ -38,8 +39,6 @@ import com.devoxx.views.helper.LoginPrompter;
 import com.devoxx.views.helper.Placeholder;
 import com.devoxx.views.helper.SessionVisuals.SessionListType;
 import com.devoxx.views.helper.Util;
-import com.gluonhq.charm.down.Services;
-import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.afterburner.GluonView;
 import com.gluonhq.charm.glisten.application.MobileApplication;
@@ -79,6 +78,11 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.function.Predicate;
+
+import static com.devoxx.util.DevoxxSettings.SESSION_FILTER;
+import static com.devoxx.views.helper.Util.addCSVToLocalStorage;
+import static com.devoxx.views.helper.Util.fetchCSVFromLocalStorage;
+import static com.devoxx.views.helper.Util.isOnGoing;
 
 public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
     
@@ -157,6 +161,13 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
             service.checkIfReloadRequested();
             service.refreshFavorites();
             showRatingDialog();
+
+            // Only do this when no rating panel is currently showing
+            // If the conference is still on going and viewers are seeing past conferences
+            if (sessions.getTop() == null &&
+                    isShowingPastSessions(service.getConference())) {
+                sessions.setTop(createFilterGrid());
+            }
         });
 
         MobileApplication.getInstance().addLayerFactory(DevoxxApplication.POPUP_FILTER_SESSIONS_MENU, () -> {
@@ -340,11 +351,8 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         final Button no = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.NO"));
         final Button yes = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.YES"));
         final Button later = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.LATER"));
-        final ImageView devoxxLogo = new ImageView();
-        devoxxLogo.getStyleClass().add("logo");
-        devoxxLogo.setPreserveRatio(true);
-        devoxxLogo.setFitWidth(64);
-        
+        final ImageView devoxxLogo = createDevoxxLogo();
+
         buttons.getChildren().addAll(no, yes);
         header.getStyleClass().add("heading");
         gridPane.getStyleClass().add("review-grid");
@@ -353,9 +361,7 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         yes.getStyleClass().add("yes");
         later.setOnAction(e -> {
             sessions.setTop(null);
-            Services.get(SettingsService.class).ifPresent(ss -> {
-                ss.store(service.getConference().getId() + "_" + DevoxxSettings.RATING, "SHOWN");
-            });
+            addCSVToLocalStorage(DevoxxSettings.RATING, service.getConference().getId());
         });
         no.setOnAction(e -> {
             header.setText(DevoxxBundle.getString("OTN.FEEDBACK.QUESTION.IMPROVE"));
@@ -382,11 +388,70 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         GridPane.setHgrow(buttons, Priority.ALWAYS);
         return gridPane;
     }
+
+    private GridPane createFilterGrid() {
+        final GridPane gridPane = new GridPane();
+        final HBox buttons = new HBox();
+        final Label header = new Label(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.MSG"));
+        final Button no = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.NO"));
+        final Button yes = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.YES"));
+        final Node icon = MaterialDesignIcon.FILTER_LIST.graphic();
+        icon.getStyleClass().add("filter-grid-icon");
+
+        buttons.getChildren().addAll(no, yes);
+        header.getStyleClass().add("heading");
+        gridPane.getStyleClass().add("review-grid");
+        buttons.getStyleClass().add("buttons");
+        no.getStyleClass().add("no");
+        yes.getStyleClass().add("yes");
+
+        no.setOnAction(e -> {
+            Toast toast = new Toast(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.TOAST.NO"));
+            toast.show();
+
+            sessions.setTop(null);
+            addCSVToLocalStorage(SESSION_FILTER, service.getConference().getId());
+        });
+        yes.setOnAction(e -> {
+            addCSVToLocalStorage(SESSION_FILTER, service.getConference().getId());
+            filterPresenter.hidePastSession();
+            sessions.setTop(null);
+            Toast toast = new Toast(DevoxxBundle.getString("OTN.FILTER.FILTER_GRID.TOAST.YES"));
+            toast.show();
+        });
+
+        gridPane.add(icon, 0, 0, 1, 2);
+        gridPane.add(header, 1, 0);
+        gridPane.add(buttons, 1, 1);
+        GridPane.setHgrow(buttons, Priority.ALWAYS);
+        return gridPane;
+    }
+
+    private ImageView createDevoxxLogo() {
+        final ImageView devoxxLogo = new ImageView();
+        devoxxLogo.getStyleClass().add("logo");
+        devoxxLogo.setPreserveRatio(true);
+        devoxxLogo.setFitWidth(64);
+        return devoxxLogo;
+    }
     
     private Button createFlatButton(String text) {
         final Button button = new Button(text);
         GlistenStyleClasses.applyStyleClass(button, GlistenStyleClasses.BUTTON_FLAT);
         return button;
+    }
+
+    private boolean isShowingPastSessions(Conference conference) {
+        // Conference is yet to end
+        // We haven't shown the filter dialog for this conference in the past
+        if (isOnGoing(conference) && !fetchCSVFromLocalStorage(SESSION_FILTER).contains(conference.getId())) {
+            for (Session filteredSession : filteredSessions) {
+                if (filteredSession.getEndDate().plusHours(1).isBefore(ZonedDateTime.now(conference.getConferenceZoneId()))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
