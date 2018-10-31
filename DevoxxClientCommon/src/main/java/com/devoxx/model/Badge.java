@@ -98,7 +98,7 @@ public class Badge extends Searchable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Badge badge = (Badge) o;
-        return Objects.equals(badgeId, badge.badgeId);
+        return Objects.equals(getBadgeId(), badge.getBadgeId());
     }
 
     @Override

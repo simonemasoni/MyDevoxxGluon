@@ -84,7 +84,7 @@ public class SponsorBadge extends Badge {
         if (!super.equals(o)) return false;
         SponsorBadge that = (SponsorBadge) o;
         return Objects.equals(getBadgeId(), that.getBadgeId()) &&
-                Objects.equals(sponsor, that.sponsor);
+                Objects.equals(getSponsor(), that.getSponsor());
     }
 
     @Override

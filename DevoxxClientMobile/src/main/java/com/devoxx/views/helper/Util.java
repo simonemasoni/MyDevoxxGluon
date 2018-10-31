@@ -60,6 +60,9 @@ import javafx.util.Duration;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.time.ZonedDateTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.function.Supplier;
 
 import static com.devoxx.util.DevoxxSettings.DAYS_PAST_END_DATE;
@@ -273,5 +276,15 @@ public class Util {
             }
         }
         return lastSession;
+    }
+
+    public static String getDummyQR() {
+        List<String> qrs = Arrays.asList(
+                "1::Smith::John::Devoxx::john.smith@devoxx.com",
+                "2::Doe::Stacey::Devoxx::stacey.doe@devoxx.com",
+                "3::Gates::Paul::Devoxx::paul.gates@devoxx.com",
+                "4::Bisl::Elon::Devoxx::elon.bisl@devoxx.com"
+        );
+        return qrs.get(new Random().nextInt(qrs.size()));
     }
 }
