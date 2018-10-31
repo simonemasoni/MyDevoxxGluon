@@ -1395,7 +1395,7 @@
 
 .vote-view > .bottom {
     -fx-alignment: bottom-center;
-    -fx-spacing: 0.5em;
+    -fx-spacing: 1.0em;
     -fx-padding: 1em 2em 1em 2em;
 }
 

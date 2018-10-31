@@ -134,6 +134,7 @@ public class VotePresenter extends GluonPresenter<DevoxxApplication> {
         if (feedback != null) {
             feedback.setText("");
         }
+        feedbackTF.clear();
         rating.setRating(4);
         comments.getSelectionModel().clearSelection();
     }
