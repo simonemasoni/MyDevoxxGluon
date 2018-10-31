@@ -806,6 +806,23 @@ public class DevoxxService implements Service {
     }
 
     @Override
+    public ObservableList<RatingData> retrieveVoteTexts(int rating) {
+        ObservableList<RatingData> ratingData = FXCollections.observableArrayList();
+        RemoteFunctionList fnTexts = RemoteFunctionBuilder.create("voteTexts").list();
+        GluonObservableList<Rating> voteTexts = fnTexts.call(Rating.class);
+        voteTexts.setOnSucceeded(e -> {
+            for (Rating voteText : voteTexts) {
+                if (voteText.getRating() == rating) {
+                    ratingData.setAll(voteText.getData());
+                    break;
+                }
+            }
+        });
+        voteTexts.setOnFailed(e -> LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "voteTexts"), e.getSource().getException()));
+        return ratingData;
+    }
+
+    @Override
     public GluonObservableObject<String> authenticateSponsor() {
         RemoteFunctionObject fnValidateSponsor = RemoteFunctionBuilder.create("validateSponsor").cachingEnabled(false).object();
         return fnValidateSponsor.call(String.class);
