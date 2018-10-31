@@ -819,11 +819,6 @@
 .speaker-card .avatar {
     -charm-radius: 3.333333em; 
 }
-/* Splash view */
-
-.splash-view .default-card {
-    -fx-padding: 0em 1.666667em 0em 1.666667em;
-}
 
 /* Video View */
 
@@ -835,6 +830,10 @@
     -fx-alignement: center-left;
     -fx-padding: 10;
     
+}
+
+.video-view > VBox > .progress-bar {
+    -fx-color: #DF9356;
 }
 
 /**************************

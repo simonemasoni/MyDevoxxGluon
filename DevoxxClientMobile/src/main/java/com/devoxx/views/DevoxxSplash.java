@@ -28,34 +28,76 @@ package com.devoxx.views;
 import com.devoxx.util.DevoxxBundle;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.VideoService;
+import com.gluonhq.charm.glisten.control.ProgressBar;
 import com.gluonhq.charm.glisten.mvc.SplashView;
 import javafx.animation.PauseTransition;
+import javafx.beans.InvalidationListener;
+import javafx.beans.Observable;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.scene.media.MediaPlayer;
 import javafx.util.Duration;
 
 public class DevoxxSplash extends SplashView { 
 
     public DevoxxSplash() {
-        final BorderPane borderPane = new BorderPane();
+        
+        ImageView placeholder = new ImageView(DevoxxSplash.class.getResource("/devoxxVideo.png").toExternalForm());
+        placeholder.setPreserveRatio(true);
+        
+        ProgressBar progress = new ProgressBar();
+        progress.setProgress(ProgressBar.INDETERMINATE_PROGRESS);
+        progress.prefWidthProperty().bind(placeholder.fitWidthProperty());
+        
+        final VBox vBox = new VBox(placeholder, progress);
+        vBox.setAlignment(Pos.CENTER);
+        
+        final BorderPane borderPane = new BorderPane(vBox);
         borderPane.getStyleClass().add("video-view");
-
+        
         Pane pane = new Pane();
         HBox.setHgrow(pane, Priority.ALWAYS);
 
         Button skip = new Button(DevoxxBundle.getString("OTN.VIDEO.SKIP_VIDEO"));
-        skip.setOnAction(e -> Services.get(VideoService.class).ifPresent(VideoService::hide));
+        skip.setOnAction(e -> {
+            Services.get(VideoService.class)
+                .map(video -> {
+                    video.hide();
+                    return true;
+                }).orElseGet(() -> {
+                    hideSplashView();
+                    return false;
+                });
+        });
+        
         HBox hBox = new HBox(pane, skip);
         hBox.getStyleClass().add("container");
 
         borderPane.setBottom(hBox);
         setCenter(borderPane);
 
+        setOnShowing(e -> {
+            if (getScene() != null) {
+                placeholder.setFitWidth(getScene().getWidth() - 20);
+            } else {
+                sceneProperty().addListener(new InvalidationListener() {
+                    @Override
+                    public void invalidated(Observable observable) {
+                        if (getScene() != null) {
+                            placeholder.setFitWidth(getScene().getWidth() - 20);
+                            sceneProperty().removeListener(this);
+                        }
+                    }
+                });
+            }
+        });
+        
         setOnShown(e -> {
             Services.get(VideoService.class).ifPresent(video -> {
                 video.setPosition(Pos.CENTER, 0, 10, 0, 10);
@@ -67,7 +109,12 @@ public class DevoxxSplash extends SplashView {
                 video.getPlaylist().add("MyDevoxxIntro.mp4");
                 // set enough time to have the view ready before playing:
                 PauseTransition delay = new PauseTransition(Duration.seconds(1.2));
-                delay.setOnFinished(d -> video.play());
+                delay.setOnFinished(d -> {
+                    video.play();
+                    placeholder.setVisible(false);
+                    progress.setProgress(1);
+                    progress.setVisible(false);
+                });
                 delay.play();
             });
             skip.requestFocus();
