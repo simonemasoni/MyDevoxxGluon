@@ -34,7 +34,7 @@ import java.time.format.FormatStyle;
 import java.util.*;
 
 public class DevoxxSettings {
-    public static final String BUILD_NUMBER = "328"                   ;
+    public static final String BUILD_NUMBER = "340"                     ;
 
     /**
      * boolean option to switch on/off automatic authentication by using a self generated random UUID
@@ -60,6 +60,12 @@ public class DevoxxSettings {
      * Default: false
      */
     public final static boolean VOTING_TESTS = false;
+
+    /**
+     * Setting this option to true will allow to scan a random badge by pressing the scan FAB
+     * Default: false
+     */
+    public final static boolean BADGE_TESTS = false;
 
     /**
      * boolean option to switch on/off local notification tests

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" 
           package="com.devoxx" 
-          android:versionCode="328" 
-          android:versionName="3.2.1">
+          android:versionCode="340" 
+          android:versionName="3.3.0">
     <uses-sdk android:minSdkVersion="9" android:targetSdkVersion="26"/>
 
     <supports-screens android:xlargeScreens="true"/>
@@ -87,7 +87,7 @@
         <activity android:name="com.gluonhq.impl.charm.down.plugins.android.PermissionRequestActivity" />
 
         <activity android:name="com.gluonhq.impl.charm.down.plugins.android.scan.zxing.CaptureActivity"
-                android:screenOrientation="sensorPortrait"
+                android:screenOrientation="sensorLandscape"
                 android:clearTaskOnLaunch="true"
                 android:stateNotNeeded="true"
                 android:windowSoftInputMode="stateAlwaysHidden">
@@ -97,5 +97,14 @@
             </intent-filter>
         </activity>
         
+        <provider
+           android:name="android.support.v4.content.FileProvider"
+           android:authorities="com.devoxx.fileprovider"
+           android:exported="false"
+           android:grantUriPermissions="true">
+           <meta-data
+               android:name="android.support.FILE_PROVIDER_PATHS"
+               android:resource="@xml/file_provider_paths" />
+       </provider>
     </application>
 </manifest>

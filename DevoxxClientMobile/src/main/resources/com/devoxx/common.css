@@ -30,7 +30,6 @@
 }
 
 .root {
-    -fx-font-family: "FakeFontFamily";  /*forces default OS font family selection*/
     -track-color0: #b0233d;
     -track-color1: #9c27B0;
     -track-color2: #8bc24a;
@@ -675,17 +674,6 @@
     -fx-wrap-text: false;
 }
 
-/** Sponsor View **/
-.sponsor-view > .content {
-    -fx-alignment: CENTER;
-    -fx-spacing: 1em;
-    -fx-padding: 1em;
-}
-
-.sponsor-view > .content > .label {
-    -fx-text-fill: #ff133c;
-}
-
 /** Vote Pane **/
 
 .vote-pane {
@@ -943,7 +931,6 @@
 
 .dialog .dialog-badge-description {
     -fx-font-size: 1em;
-    -fx-font-family: "FakeFontFamily";  /* forces OS default font family selection */
     -fx-wrap-text: true;
 }
 

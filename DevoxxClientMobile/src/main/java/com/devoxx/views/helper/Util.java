@@ -63,6 +63,7 @@ import java.time.ZonedDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.function.Supplier;
 
 import static com.devoxx.util.DevoxxSettings.DAYS_PAST_END_DATE;
@@ -316,5 +317,15 @@ public class Util {
      */
     public static boolean isOnGoing(Conference conference) {
         return conference.getDaysUntilStart() <= 0 && conference.getDaysUntilEnd() >= 0;
+    }
+
+    public static String getDummyQR() {
+        List<String> qrs = Arrays.asList(
+                "1::Smith::John::Devoxx::john.smith@devoxx.com",
+                "2::Doe::Stacey::Devoxx::stacey.doe@devoxx.com",
+                "3::Gates::Paul::Devoxx::paul.gates@devoxx.com",
+                "4::Bisl::Elon::Devoxx::elon.bisl@devoxx.com"
+        );
+        return qrs.get(new Random().nextInt(qrs.size()));
     }
 }

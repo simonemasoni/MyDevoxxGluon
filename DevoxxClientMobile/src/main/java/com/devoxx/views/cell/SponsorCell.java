@@ -26,8 +26,12 @@
 package com.devoxx.views.cell;
 
 import com.devoxx.DevoxxView;
+import com.devoxx.model.BadgeType;
 import com.devoxx.model.Sponsor;
+import com.devoxx.util.DevoxxSettings;
 import com.devoxx.views.SponsorBadgePresenter;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.control.CharmListCell;
 import com.gluonhq.charm.glisten.control.ListTile;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
@@ -53,6 +57,10 @@ public class SponsorCell extends CharmListCell<Sponsor> {
 
             // FIX for OTN-568
             tile.setOnMouseReleased(event -> {
+                Services.get(SettingsService.class).ifPresent(service -> {
+                    service.store(DevoxxSettings.BADGE_TYPE, BadgeType.SPONSOR.toString());
+                    service.store(DevoxxSettings.BADGE_SPONSOR, sponsor.toCSV());
+                });
                 DevoxxView.SPONSOR_BADGE.switchView().ifPresent(presenter ->
                         ((SponsorBadgePresenter)presenter).setSponsor(sponsor));
             });
