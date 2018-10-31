@@ -79,6 +79,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static com.devoxx.util.DevoxxSettings.LOCAL_NOTIFICATION_RATING;
+import static com.devoxx.util.DevoxxSettings.SESSION_FILTER;
 import static com.devoxx.views.helper.Util.*;
 import static java.time.temporal.ChronoUnit.SECONDS;
 
@@ -110,6 +111,9 @@ public class DevoxxService implements Service {
                     }
                 });
             });
+
+            // Remove Sessions filter key-value
+            Services.get(SettingsService.class).ifPresent(ss -> ss.remove(SESSION_FILTER));
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
