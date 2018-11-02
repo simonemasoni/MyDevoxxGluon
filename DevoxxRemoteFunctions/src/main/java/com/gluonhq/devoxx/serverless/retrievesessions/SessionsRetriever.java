@@ -63,7 +63,8 @@ public class SessionsRetriever {
                     if (slots.getStatus() == Response.Status.OK.getStatusCode()) {
                         try (JsonReader slotsReader = Json.createReader(new StringReader(slots.readEntity(String.class)))) {
                             slotsReader.readObject().getJsonArray("slots").getValuesAs(JsonObject.class).stream()
-                                    .filter(slot -> slot.containsKey("talk") && slot.get("talk").getValueType() == JsonValue.ValueType.OBJECT)
+                                    .filter(slot -> (slot.containsKey("talk") && slot.get("talk").getValueType() == JsonValue.ValueType.OBJECT) ||
+                                            (slot.containsKey("break") && slot.get("break").getValueType() == JsonValue.ValueType.OBJECT))
                                     .forEach(sessions::add);
                         }
                     } else {
