@@ -55,7 +55,7 @@ public class SessionsLambda implements RequestStreamHandler {
     }
 
     public static void main(String[] args) throws IOException {
-        InputStream input = new ByteArrayInputStream("{\"cfpEndpoint\":\"https://cfp.devoxx.be/api\",\"conferenceId\":\"DVBE17\"}".getBytes(StandardCharsets.UTF_8));
+        InputStream input = new ByteArrayInputStream("{\"cfpEndpoint\":\"https://dvbe18.confinabox.com/api\",\"conferenceId\":\"dvbe18\"}".getBytes(StandardCharsets.UTF_8));
         ByteArrayOutputStream output = new ByteArrayOutputStream();
         new SessionsLambda().handleRequest(input, output, null);
         System.out.println("output = " + new String(output.toByteArray(), StandardCharsets.UTF_8));
