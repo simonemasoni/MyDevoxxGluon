@@ -146,6 +146,16 @@ public class SessionVisuals {
         ToggleButton favButton = buildButton(SessionListType.FAVORITES, session);
         Label favCounter = new Label();
         favCounter.getStyleClass().add("fav-counter");
+        Favorite fav = getFavoriteFor(session);
+
+        favCounter.textProperty().bind(fav.favsProperty().asString());
+        favCounter.managedProperty().bind(fav.favsProperty().greaterThanOrEqualTo(10));
+        HBox favBox = new HBox(favButton, favCounter);
+        favBox.getStyleClass().add("fav-box");
+        return favBox;
+    }
+
+    public Favorite getFavoriteFor(Session session) {
         Optional<Favorite> favorite = Optional.empty();
         for (Favorite fav : service.retrieveFavorites()) {
             if (fav.getId().equals(session.getTalk().getId())) {
@@ -153,18 +163,12 @@ public class SessionVisuals {
                 break;
             }
         }
-        Favorite fav = favorite.orElseGet(() -> {
+        return favorite.orElseGet(() -> {
             Favorite emptyFavorite = new Favorite();
             emptyFavorite.setId(session.getTalk().getId());
             service.retrieveFavorites().add(emptyFavorite);
             return emptyFavorite;
         });
-
-        favCounter.textProperty().bind(fav.favsProperty().asString());
-        favCounter.managedProperty().bind(fav.favsProperty().greaterThanOrEqualTo(10));
-        HBox favBox = new HBox(favButton, favCounter);
-        favBox.getStyleClass().add("fav-box");
-        return favBox;
     }
 
     private ToggleButton buildButton(SessionListType listType, Session session) {

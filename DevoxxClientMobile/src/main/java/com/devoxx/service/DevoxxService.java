@@ -440,7 +440,7 @@ public class DevoxxService implements Service {
 
         sessions.clear();
 
-        RemoteFunctionList fnSessions = RemoteFunctionBuilder.create("sessions")
+        RemoteFunctionList fnSessions = RemoteFunctionBuilder.create("sessionsV2")
                 .param("cfpEndpoint", getCfpURL())
                 .param("conferenceId", getConference().getCfpVersion())
                 .list();

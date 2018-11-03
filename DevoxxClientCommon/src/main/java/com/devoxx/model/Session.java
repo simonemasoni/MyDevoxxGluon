@@ -143,11 +143,11 @@ public class Session extends Searchable {
         this.endDate = endDate;
     }
 
-    public Break getaBreak() {
+    public Break getBreak() {
         return aBreak;
     }
 
-    public void setaBreak(Break aBreak) {
+    public void setBreak(Break aBreak) {
         this.aBreak = aBreak;
     }
 

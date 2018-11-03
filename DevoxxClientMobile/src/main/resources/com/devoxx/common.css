@@ -30,6 +30,7 @@
 }
 
 .root {
+    -track-color-non: transparent;
     -track-color0: #b0233d;
     -track-color1: #9c27B0;
     -track-color2: #8bc24a;
@@ -260,6 +261,11 @@
 
 .list-cell.schedule-cell:color {
     -fx-background-color: -track-unknown, derive(-fx-control-inner-background,-7%);
+}
+
+.list-cell.schedule-cell:track-color-non,
+.list-cell.schedule-cell:track-color-non:color{
+    -fx-background-color: track-color-non, white;
 }
 
 .list-cell.schedule-cell:track-color0 {
