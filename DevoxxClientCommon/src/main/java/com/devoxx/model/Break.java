@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, Gluon Software
+ * Copyright (c) 2016, 2018 Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -31,14 +31,20 @@ public class Break {
     private String nameEN;
     private String nameFR;
     private Room room;
+    private String dayName;
+    private long startTime;
+    private long endTime;
 
     public Break() {}
 
-    public Break(String id, String nameEN, String nameFR, Room room) {
+    public Break(String id, String nameEN, String nameFR, Room room, String dayName, long startTime, long endTime) {
         this.id = id;
         this.nameEN = nameEN;
         this.nameFR = nameFR;
         this.room = room;
+        this.dayName = dayName;
+        this.startTime = startTime;
+        this.endTime = endTime;
     }
 
     public String getId() {
@@ -71,5 +77,29 @@ public class Break {
 
     public void setRoom(Room room) {
         this.room = room;
+    }
+
+    public String getDayName() {
+        return dayName;
+    }
+
+    public void setDayName(String dayName) {
+        this.dayName = dayName;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
     }
 }

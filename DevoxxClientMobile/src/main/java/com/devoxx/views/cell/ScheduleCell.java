@@ -33,6 +33,7 @@ import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
 import com.devoxx.util.DevoxxSettings;
 import com.devoxx.views.SessionPresenter;
+import com.devoxx.views.helper.SessionTrack;
 import com.devoxx.views.helper.SessionVisuals;
 import com.gluonhq.charm.glisten.control.CharmListCell;
 import com.gluonhq.charm.glisten.control.ListTile;
@@ -55,7 +56,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.util.List;
-import java.util.Optional;
 
 import static com.devoxx.views.helper.SessionTrack.fetchPseudoClassForTrack;
 
@@ -72,16 +72,18 @@ public class ScheduleCell extends CharmListCell<Session> {
     private Label sessionTypeLabel;
     private HBox sessionType;
     private Session session;
+    private SessionVisuals sessionVisuals;
     private boolean showDate;
     private boolean showSessionType;
     private PseudoClass oldPseudoClass;
 
-    public ScheduleCell(Service service) {
-        this(service, false, false);
+    public ScheduleCell(Service service, SessionVisuals sessionVisuals) {
+        this(service, sessionVisuals, false, false);
     }
 
-    public ScheduleCell(Service service, boolean showDate, boolean showSessionType) {
+    public ScheduleCell(Service service, SessionVisuals sessionVisuals, boolean showDate, boolean showSessionType) {
         this.service = service;
+        this.sessionVisuals = sessionVisuals;
         this.showDate = showDate;
         this.showSessionType = showSessionType;
         
@@ -130,17 +132,22 @@ public class ScheduleCell extends CharmListCell<Session> {
         super.updateItem(item, empty);
         session = item;
         if (item != null && !empty) {
+
+            if (item.getTalk() != null) {
+                secondaryGraphic.updateGraphic(session);
+                listTile.setSecondaryGraphic(secondaryGraphic);
+                listTile.setOnMouseReleased(event -> {
+                    DevoxxView.SESSION.switchView().ifPresent(presenter ->
+                            ((SessionPresenter) presenter).showSession(session));
+                });
+            } else if (item.getBreak() != null) {
+                listTile.setSecondaryGraphic(null);
+                listTile.setOnMouseReleased(null);
+            }
+
             updateListTile();
             updateSessionType();
-            
-            secondaryGraphic.updateGraphic(session);
             setGraphic(borderPane);
-
-            // FIX for OTN-568
-            listTile.setOnMouseReleased(event -> {
-                DevoxxView.SESSION.switchView().ifPresent(presenter ->
-                        ((SessionPresenter) presenter).showSession(session));
-            });
         } else {
             setGraphic(null);
         }
@@ -171,12 +178,22 @@ public class ScheduleCell extends CharmListCell<Session> {
 
             List<TalkSpeaker> speakers = session.getTalk().getSpeakers();
             listTile.setTextLine(1, convertSpeakersToString(speakers));
+            listTile.setTextLine(2, DevoxxBundle.getString("OTN.SCHEDULE.IN_AT",
+                    session.getRoomName(),
+                    DevoxxSettings.TIME_FORMATTER.format(session.getStartDate()),
+                    DevoxxSettings.TIME_FORMATTER.format(session.getEndDate())));
+            updateFavorite();
+        } else if (session.getBreak() != null) {
+            listTile.setTextLine(0, session.getBreak().getNameEN());
+            listTile.setTextLine(1, "");
+            listTile.setTextLine(2, DevoxxBundle.getString("OTN.SCHEDULE.IN_AT_BREAK",
+                    DevoxxSettings.TIME_FORMATTER.format(session.getStartDate()),
+                    DevoxxSettings.TIME_FORMATTER.format(session.getEndDate())));
+            final VBox vBox = (VBox) listTile.getChildren().get(0);
+            Label label = (Label) vBox.getChildren().get(vBox.getChildren().size() - 1);
+            label.setGraphic(null);
+            changePseudoClass(SessionTrack.PSEUDO_CLASS_NO_COLOR);
         }
-
-        listTile.setTextLine(2, DevoxxBundle.getString("OTN.SCHEDULE.IN_AT",
-                session.getRoomName(),
-                DevoxxSettings.TIME_FORMATTER.format(session.getStartDate()),
-                DevoxxSettings.TIME_FORMATTER.format(session.getEndDate())));
         
         if (showDate) {
             initializeStartLabel();
@@ -185,20 +202,11 @@ public class ScheduleCell extends CharmListCell<Session> {
             ((VBox) listTile.getChildren().get(0)).getChildren().add(startDateLabel);
         }
 
-        Optional<Favorite> favorite = Optional.empty();
-        for (Favorite fav : service.retrieveFavorites()) {
-            if (fav.getId().equals(session.getTalk().getId())) {
-                favorite = Optional.of(fav);
-                break;
-            }
-        }
-        Favorite fav = favorite.orElseGet(() -> {
-            Favorite emptyFavorite = new Favorite();
-            emptyFavorite.setId(session.getTalk().getId());
-            service.retrieveFavorites().add(emptyFavorite);
-            return emptyFavorite;
-        });
+        pseudoClassStateChanged(PSEUDO_CLASS_COLORED, session.isDecorated());
+    }
 
+    private void updateFavorite() {
+        Favorite fav = sessionVisuals.getFavoriteFor(session);
         // Hacky Code as it uses internals of ListTile
         final VBox vBox = (VBox) listTile.getChildren().get(0);
         Label label = (Label) vBox.getChildren().get(vBox.getChildren().size() - 1);
@@ -211,8 +219,6 @@ public class ScheduleCell extends CharmListCell<Session> {
         favLabel.setGraphic(graphic);
         label.setGraphic(favLabel);
         label.setContentDisplay(ContentDisplay.RIGHT);
-
-        pseudoClassStateChanged(PSEUDO_CLASS_COLORED, session.isDecorated());
     }
 
     private void initializeStartLabel() {

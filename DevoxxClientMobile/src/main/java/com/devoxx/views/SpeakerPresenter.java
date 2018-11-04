@@ -34,6 +34,7 @@ import com.devoxx.model.Talk;
 import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
 import com.devoxx.views.cell.ScheduleCell;
+import com.devoxx.views.helper.SessionVisuals;
 import com.devoxx.views.helper.SpeakerCard;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.control.AppBar;
@@ -62,6 +63,9 @@ public class SpeakerPresenter extends GluonPresenter<DevoxxApplication> {
 
     @Inject
     private Service service;
+
+    @Inject
+    private SessionVisuals sessionVisuals;
 
     private CharmListView<Session, LocalDate> sessionsListView;
 
@@ -159,7 +163,7 @@ public class SpeakerPresenter extends GluonPresenter<DevoxxApplication> {
     private CharmListView<Session, LocalDate> createSessionsListView(Speaker activeSpeaker) {
         sessionsListView = new CharmListView<>(fetchSessions(activeSpeaker));
         sessionsListView.getStyleClass().add("sessions-list");
-        sessionsListView.setCellFactory(p -> new ScheduleCell(service, true, false));
+        sessionsListView.setCellFactory(p -> new ScheduleCell(service, sessionVisuals, true, false));
         
         if (activeSpeaker.isDetailsRetrieved()) {
             sessionsListView.setItems(fetchSessions(activeSpeaker));
