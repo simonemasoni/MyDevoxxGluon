@@ -25,6 +25,8 @@
  */
 package com.devoxx.model;
 
+import java.util.Objects;
+
 public class Break {
 
     private String id;
@@ -101,5 +103,18 @@ public class Break {
 
     public void setEndTime(long endTime) {
         this.endTime = endTime;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Break aBreak = (Break) o;
+        return Objects.equals(id, aBreak.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
