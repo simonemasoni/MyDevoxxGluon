@@ -134,21 +134,20 @@ public class ScheduleCell extends CharmListCell<Session> {
         if (item != null && !empty) {
 
             if (item.getTalk() != null) {
-                updateSessionType();
                 secondaryGraphic.updateGraphic(session);
-                setGraphic(borderPane);
+                listTile.setSecondaryGraphic(secondaryGraphic);
                 listTile.setOnMouseReleased(event -> {
                     DevoxxView.SESSION.switchView().ifPresent(presenter ->
                             ((SessionPresenter) presenter).showSession(session));
                 });
             } else if (item.getBreak() != null) {
-                // listTile.setPrimaryGraphic(null);
                 listTile.setSecondaryGraphic(null);
                 listTile.setOnMouseReleased(null);
             }
 
             updateListTile();
-
+            updateSessionType();
+            setGraphic(borderPane);
         } else {
             setGraphic(null);
         }

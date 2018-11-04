@@ -339,6 +339,7 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
             session.setDecorated(colorFlag);
 
             session.setShowSessionType(false);
+            if (session.getBreak() != null) continue;
             if (previousSessionWithType == null ||
                     session.getStartDate().toLocalDate().toEpochDay() > previousSessionWithType.getStartDate().toLocalDate().toEpochDay() ||
                     (session.getTalk() != null && previousSessionWithType.getTalk() != null &&
