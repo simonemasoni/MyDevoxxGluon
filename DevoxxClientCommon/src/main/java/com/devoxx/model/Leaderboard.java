@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, 2018 Gluon Software
+ * Copyright (c) 2016, Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -25,60 +25,29 @@
  */
 package com.devoxx.model;
 
-public class Room {
-    private String id;
+import javafx.scene.image.Image;
+
+public class Leaderboard {
+
     private String name;
-    private int capacity;
-    private String setup;
-    private String recorded;
+    private Image image;
+    private Integer points;
 
-    public Room() {}
-
-    public Room(String id, String name, int capacity, String setup, String recorded) {
-        this.id = id;
+    public Leaderboard(String name, Image image, Integer points) {
         this.name = name;
-        this.capacity = capacity;
-        this.setup = setup;
-        this.recorded = recorded;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
+        this.image = image;
+        this.points = points;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public Image getImage() {
+        return image;
     }
 
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
-
-    public String getSetup() {
-        return setup;
-    }
-
-    public void setSetup(String setup) {
-        this.setup = setup;
-    }
-
-    public String getRecorded() {
-        return recorded;
-    }
-
-    public void setRecorded(String recorded) {
-        this.recorded = recorded;
+    public Integer getPoints() {
+        return points;
     }
 }

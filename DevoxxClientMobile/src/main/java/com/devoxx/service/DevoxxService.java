@@ -440,7 +440,7 @@ public class DevoxxService implements Service {
 
         sessions.clear();
 
-        RemoteFunctionList fnSessions = RemoteFunctionBuilder.create("sessions")
+        RemoteFunctionList fnSessions = RemoteFunctionBuilder.create("sessionsV2")
                 .param("cfpEndpoint", getCfpURL())
                 .param("conferenceId", getConference().getCfpVersion())
                 .list();
@@ -805,6 +805,23 @@ public class DevoxxService implements Service {
                 .param("locationId", String.valueOf(getConference().getLocationId()))
                 .object();
         return fnLocation.call(Location.class);
+    }
+
+    @Override
+    public ObservableList<RatingData> retrieveVoteTexts(int rating) {
+        ObservableList<RatingData> ratingData = FXCollections.observableArrayList();
+        RemoteFunctionList fnTexts = RemoteFunctionBuilder.create("voteTexts").list();
+        GluonObservableList<Rating> voteTexts = fnTexts.call(Rating.class);
+        voteTexts.setOnSucceeded(e -> {
+            for (Rating voteText : voteTexts) {
+                if (voteText.getRating() == rating) {
+                    ratingData.setAll(voteText.getData());
+                    break;
+                }
+            }
+        });
+        voteTexts.setOnFailed(e -> LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "voteTexts"), e.getSource().getException()));
+        return ratingData;
     }
 
     @Override

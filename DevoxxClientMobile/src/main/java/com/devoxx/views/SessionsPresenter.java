@@ -37,6 +37,7 @@ import com.devoxx.views.cell.ScheduleHeaderCell;
 import com.devoxx.views.helper.FilterSessionsPresenter;
 import com.devoxx.views.helper.LoginPrompter;
 import com.devoxx.views.helper.Placeholder;
+import com.devoxx.views.helper.SessionVisuals;
 import com.devoxx.views.helper.SessionVisuals.SessionListType;
 import com.devoxx.views.helper.Util;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
@@ -109,6 +110,8 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
 
     @Inject
     private Service service;
+    @Inject
+    private SessionVisuals sessionVisuals;
 
     private final Button refreshButton = MaterialDesignIcon.REFRESH.button();
 
@@ -165,7 +168,7 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
 
             // Only do this when no rating panel is currently showing
             // If the conference is still on going and viewers are seeing past conferences
-            if (sessions.getTop() == null &&
+            if (sessions.getTop() == null && service.getConference() != null &&
                     isShowingPastSessions(service.getConference())) {
                 sessions.setTop(createFilterGrid());
             }
@@ -253,7 +256,7 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
             scheduleListView.getStyleClass().add("schedule-view");
             scheduleListView.setHeadersFunction(s -> s.getStartDate().toLocalDate());
             scheduleListView.setHeaderCellFactory(c -> new ScheduleHeaderCell());
-            scheduleListView.setCellFactory(p -> new ScheduleCell(service, false, true));
+            scheduleListView.setCellFactory(p -> new ScheduleCell(service, sessionVisuals, false, true));
             Comparator<Session> sessionComparator = (s1, s2) -> {
                 int compareStartDate = s1.getStartDate().compareTo(s2.getStartDate());
                 if (compareStartDate == 0) {
@@ -336,9 +339,11 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
             session.setDecorated(colorFlag);
 
             session.setShowSessionType(false);
+            if (session.getBreak() != null) continue;
             if (previousSessionWithType == null ||
                     session.getStartDate().toLocalDate().toEpochDay() > previousSessionWithType.getStartDate().toLocalDate().toEpochDay() ||
-                    !session.getTalk().getTalkType().equals(previousSessionWithType.getTalk().getTalkType())) {
+                    (session.getTalk() != null && previousSessionWithType.getTalk() != null &&
+                            !session.getTalk().getTalkType().equals(previousSessionWithType.getTalk().getTalkType()))) {
                 previousSessionWithType = session;
                 session.setShowSessionType(true);
             }

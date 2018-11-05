@@ -36,3 +36,7 @@
 .app-bar > .title-box > .label {
     -fx-font-size: 1.25em;
 }
+
+.vote-view > .center > .compliments > .virtual-flow > .clipped-container > .sheet > .list-cell:selected > .text {
+     -fx-font-size: 1.3em;
+ }

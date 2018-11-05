@@ -30,9 +30,11 @@ import com.devoxx.views.*;
 import com.gluonhq.charm.glisten.afterburner.AppView;
 import com.gluonhq.charm.glisten.afterburner.AppViewRegistry;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
+import com.gluonhq.charm.glisten.mvc.View;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 
 import java.util.Locale;
+import java.util.Optional;
 
 import static com.gluonhq.charm.glisten.afterburner.AppView.Flag.*;
 
@@ -59,6 +61,8 @@ public class DevoxxView {
     public static final AppView ABOUT           = view( AboutPresenter.class,          MaterialDesignIcon.AC_UNIT,            SHOW_IN_DRAWER);
     public static final AppView FEEDBACK        = view( FeedbackPresenter.class,       MaterialDesignIcon.CREATE,             SKIP_VIEW_STACK);
     public static final AppView CONF_SELECTOR   = view( ConfSelectorPresenter.class,   MaterialDesignIcon.ANNOUNCEMENT,       SHOW_IN_DRAWER, HOME_VIEW, SKIP_VIEW_STACK);
+    public static final AppView VOTE            = view( VotePresenter.class,           MaterialDesignIcon.THUMBS_UP_DOWN,     SKIP_VIEW_STACK);
+    // public static final AppView LEADERBOARD     = view( LeaderboardPresenter.class,    MaterialDesignIcon.STARS, SHOW_IN_DRAWER);
 
     private static AppView view(Class<? extends GluonPresenter<?>> presenterClass, MaterialDesignIcon menuIcon, AppView.Flag... flags ) {
         return REGISTRY.createView( name(presenterClass),
@@ -70,6 +74,10 @@ public class DevoxxView {
 
     private static String name(Class<? extends GluonPresenter<?>> presenterClass) {
         return presenterClass.getSimpleName().toUpperCase(Locale.ROOT).replace("PRESENTER", "");
+    }
+
+    public static Optional<AppView> getAppView(View view) {
+        return REGISTRY.getView(view);
     }
 
 }
