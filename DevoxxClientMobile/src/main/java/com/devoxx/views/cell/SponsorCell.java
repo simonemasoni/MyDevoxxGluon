@@ -28,13 +28,17 @@ package com.devoxx.views.cell;
 import com.devoxx.DevoxxView;
 import com.devoxx.model.BadgeType;
 import com.devoxx.model.Sponsor;
+import com.devoxx.util.DevoxxBundle;
 import com.devoxx.util.DevoxxSettings;
 import com.devoxx.views.SponsorBadgePresenter;
+import com.devoxx.views.helper.Util;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.control.CharmListCell;
 import com.gluonhq.charm.glisten.control.ListTile;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
+import javafx.application.Platform;
+import javafx.util.Duration;
 
 public class SponsorCell extends CharmListCell<Sponsor> {
 
@@ -63,6 +67,7 @@ public class SponsorCell extends CharmListCell<Sponsor> {
                 });
                 DevoxxView.SPONSOR_BADGE.switchView().ifPresent(presenter ->
                         ((SponsorBadgePresenter)presenter).setSponsor(sponsor));
+                Platform.runLater(() -> Util.showToast(DevoxxBundle.getString("OTN.BADGES.LOGIN.SPONSOR", sponsor.getName()), Duration.seconds(5)));
             });
         } else {
             setGraphic(null);

@@ -45,6 +45,7 @@ import com.gluonhq.charm.glisten.control.CharmListView;
 import com.gluonhq.charm.glisten.control.FloatingActionButton;
 import com.gluonhq.charm.glisten.control.Toast;
 import com.gluonhq.charm.glisten.mvc.View;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -96,14 +97,16 @@ public class AttendeeBadgePresenter extends GluonPresenter<DevoxxApplication> {
     }
 
     private void loadAnonymousView() {
-        attendeeView.setCenter(new LoginPrompter(service, ANONYMOUS_MESSAGE, DevoxxView.ATTENDEE_BADGE.getMenuIcon(), this::loadAuthenticatedView));
+        attendeeView.setCenter(new LoginPrompter(service, ANONYMOUS_MESSAGE, DevoxxView.ATTENDEE_BADGE.getMenuIcon(), () -> {
+            loadAuthenticatedView();
+            Platform.runLater(() -> Util.showToast(DevoxxBundle.getString("OTN.BADGES.LOGIN.ATTENDEE"), Duration.seconds(5)));
+        }));
     }
 
     private void loadAuthenticatedView() {
         Services.get(SettingsService.class).ifPresent(service -> {
             service.store(DevoxxSettings.BADGE_TYPE, BadgeType.ATTENDEE.toString());
         });
-        Util.showToast(DevoxxBundle.getString("OTN.BADGES.LOGIN.ATTENDEE"), Duration.seconds(5));
         showAttendee();
     }
 
