@@ -40,6 +40,7 @@ import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.BarcodeScanService;
 import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
+import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.control.CharmListView;
 import com.gluonhq.charm.glisten.control.FloatingActionButton;
@@ -70,6 +71,7 @@ public class AttendeeBadgePresenter extends GluonPresenter<DevoxxApplication> {
 
     private FloatingActionButton scan;
     private CharmListView<Badge, String> attendeeBadges;
+    private boolean addToStack;
 
     public void initialize() {
         
@@ -88,6 +90,14 @@ public class AttendeeBadgePresenter extends GluonPresenter<DevoxxApplication> {
         });
     }
 
+    /**
+     * Sets a flag which removes the last added view to the stack
+     * when authentication is successful.
+     */
+    public void addToStack() {
+        addToStack = true;
+    }
+
     private void authenticate() {
         if (service.isAuthenticated() || !DevoxxSettings.USE_REMOTE_NOTES) {
             loadAuthenticatedView();
@@ -104,6 +114,12 @@ public class AttendeeBadgePresenter extends GluonPresenter<DevoxxApplication> {
     }
 
     private void loadAuthenticatedView() {
+        if (addToStack) {
+            // Remove last added view from view stack
+            addToStack = false;
+            MobileApplication.getInstance().switchToPreviousView();
+            DevoxxView.ATTENDEE_BADGE.switchView();
+        }
         Services.get(SettingsService.class).ifPresent(service -> {
             service.store(DevoxxSettings.BADGE_TYPE, BadgeType.ATTENDEE.toString());
         });

@@ -34,6 +34,7 @@ import com.devoxx.views.SponsorBadgePresenter;
 import com.devoxx.views.helper.Util;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.SettingsService;
+import com.gluonhq.charm.glisten.application.MobileApplication;
 import com.gluonhq.charm.glisten.control.CharmListCell;
 import com.gluonhq.charm.glisten.control.ListTile;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
@@ -65,6 +66,8 @@ public class SponsorCell extends CharmListCell<Sponsor> {
                     service.store(DevoxxSettings.BADGE_TYPE, BadgeType.SPONSOR.toString());
                     service.store(DevoxxSettings.BADGE_SPONSOR, sponsor.toCSV());
                 });
+                // Remove BadgePresenter from View Stack
+                MobileApplication.getInstance().switchToPreviousView();
                 DevoxxView.SPONSOR_BADGE.switchView().ifPresent(presenter ->
                         ((SponsorBadgePresenter)presenter).setSponsor(sponsor));
                 Platform.runLater(() -> Util.showToast(DevoxxBundle.getString("OTN.BADGES.LOGIN.SPONSOR", sponsor.getName()), Duration.seconds(5)));
