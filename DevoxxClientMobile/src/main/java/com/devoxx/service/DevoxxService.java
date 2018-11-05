@@ -387,6 +387,7 @@ public class DevoxxService implements Service {
     @Override
     public boolean showRatingDialog() {
         if (getConference() == null) return false;
+        if (retrieveSessions().isEmpty()) return false;
         if (!fetchCSVFromLocalStorage(DevoxxSettings.RATING).contains(getConference().getId())) {
             ZonedDateTime dateTimeRating = Util.findLastSessionOfLastDay(this).getStartDate().minusHours(1);
             if (DevoxxSettings.NOTIFICATION_TESTS) {
