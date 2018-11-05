@@ -34,8 +34,6 @@ import java.util.Map;
 
 public class SessionTrack {
 
-    public static PseudoClass PSEUDO_CLASS_NO_COLOR = PseudoClass.getPseudoClass("track-color-non");
-
     private static Map<String, PseudoClass> trackPseudoClassMap = new HashMap<>();
     private static List<String> classes = Arrays.asList("track-color0",
             "track-color1", "track-color2", "track-color3",

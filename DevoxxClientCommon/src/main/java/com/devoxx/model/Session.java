@@ -218,7 +218,8 @@ public class Session extends Searchable {
             return false;
         }
         final Talk otherTalk = ((Session) obj).talk;
-        return talk == otherTalk || (talk != null && talk.equals(otherTalk));
+        return  (talk != null && talk.equals(otherTalk)) ||
+                (aBreak != null && aBreak.equals(((Session) obj).aBreak));
     }
     
 }
