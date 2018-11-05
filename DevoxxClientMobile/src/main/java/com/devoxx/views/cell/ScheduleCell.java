@@ -62,6 +62,7 @@ import static com.devoxx.views.helper.SessionTrack.fetchPseudoClassForTrack;
 public class ScheduleCell extends CharmListCell<Session> {
 
     private static final PseudoClass PSEUDO_CLASS_COLORED = PseudoClass.getPseudoClass("color");
+    private static final PseudoClass PSEUDO_CLASS_BREAK = PseudoClass.getPseudoClass("break");
     
     private final Service service;
     private final ListTile listTile;
@@ -70,6 +71,7 @@ public class ScheduleCell extends CharmListCell<Session> {
     private final Label trackLabel;
     private Label startDateLabel;
     private Label sessionTypeLabel;
+    private Group trackLabelContainer;
     private HBox sessionType;
     private Session session;
     private SessionVisuals sessionVisuals;
@@ -88,7 +90,7 @@ public class ScheduleCell extends CharmListCell<Session> {
         this.showSessionType = showSessionType;
         
         trackLabel = new Label();
-        Group trackLabelContainer = new Group(trackLabel);
+        trackLabelContainer = new Group(trackLabel);
         secondaryGraphic = new SecondaryGraphic();
 
         listTile = new ListTile() {
@@ -135,12 +137,14 @@ public class ScheduleCell extends CharmListCell<Session> {
 
             if (item.getTalk() != null) {
                 secondaryGraphic.updateGraphic(session);
+                listTile.setPrimaryGraphic(trackLabelContainer);
                 listTile.setSecondaryGraphic(secondaryGraphic);
                 listTile.setOnMouseReleased(event -> {
                     DevoxxView.SESSION.switchView().ifPresent(presenter ->
                             ((SessionPresenter) presenter).showSession(session));
                 });
             } else if (item.getBreak() != null) {
+                listTile.setPrimaryGraphic(null);
                 listTile.setSecondaryGraphic(null);
                 listTile.setOnMouseReleased(null);
             }
@@ -192,7 +196,7 @@ public class ScheduleCell extends CharmListCell<Session> {
             final VBox vBox = (VBox) listTile.getChildren().get(0);
             Label label = (Label) vBox.getChildren().get(vBox.getChildren().size() - 1);
             label.setGraphic(null);
-            changePseudoClass(SessionTrack.PSEUDO_CLASS_NO_COLOR);
+            changePseudoClass(PSEUDO_CLASS_BREAK);
         }
         
         if (showDate) {
