@@ -150,7 +150,7 @@ public class SpeakerPresenter extends GluonPresenter<DevoxxApplication> {
             List<Talk> acceptedTalks = activeSpeaker.getAcceptedTalks();
             for (Talk acceptedTalk : acceptedTalks) {
                 for (Session session : sessions) {
-                    if (acceptedTalk.getId().equals(session.getTalk().getId())) {
+                    if (session.getTalk() != null && acceptedTalk.getId().equals(session.getTalk().getId())) {
                         speakerSessions.add(session);
                         break;
                     }
