@@ -40,6 +40,7 @@ import com.gluonhq.charm.down.plugins.RuntimeArgsService;
 import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.down.plugins.StorageService;
 import com.gluonhq.charm.glisten.application.MobileApplication;
+import com.gluonhq.charm.glisten.control.Alert;
 import com.gluonhq.charm.glisten.control.Dialog;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
 import com.gluonhq.cloudlink.client.data.*;
@@ -250,16 +251,35 @@ public class DevoxxService implements Service {
 
     @Override
     public void authenticate(Runnable successRunnable) {
-        authenticationClient.authenticate(user -> loadCfpAccount(user, successRunnable));
+        authenticationClient.authenticate(user -> {
+            if (user.getEmail() == null) {
+                showEmailAlert();
+            } else {
+                loadCfpAccount(user, successRunnable);
+            }
+        });
     }
 
     @Override
     public void authenticate(Runnable successRunnable, Runnable failureRunnable) {
-        authenticationClient.authenticate(user -> loadCfpAccount(user, successRunnable), message -> {
+        authenticationClient.authenticate(user -> {
+            if (user.getEmail() == null) {
+                showEmailAlert();
+            } else {
+                loadCfpAccount(user, successRunnable);
+            }
+        }, message -> {
             if (failureRunnable != null) {
                 failureRunnable.run();
             }
         });
+    }
+
+    private void showEmailAlert() {
+        internalLogOut();
+        Alert alert = new Alert(javafx.scene.control.Alert.AlertType.WARNING);
+        alert.setContentText(DevoxxBundle.getString("OTN.LOGIN.EMAIL_MESSAGE"));
+        alert.showAndWait();
     }
 
     @Override
@@ -301,6 +321,7 @@ public class DevoxxService implements Service {
 
     private boolean internalLogOut() {
         authenticationClient.signOut();
+        java.net.CookieHandler.setDefault(new java.net.CookieManager());
         if (!authenticationClient.isAuthenticated()) {
             clearCfpAccount();
         }
