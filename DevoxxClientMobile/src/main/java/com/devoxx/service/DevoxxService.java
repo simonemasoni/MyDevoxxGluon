@@ -126,7 +126,6 @@ public class DevoxxService implements Service {
     private final PushClient pushClient;
     private final DataClient localDataClient;
     private final DataClient cloudDataClient;
-    private final DataClient nonAuthenticatedCloudDataClient;
 
     private final StringProperty cfpUserUuid = new SimpleStringProperty(this, "cfpUserUuid", "");
 
@@ -172,10 +171,6 @@ public class DevoxxService implements Service {
 
         cloudDataClient = DataClientBuilder.create()
                 .authenticateWith(authenticationClient)
-                .operationMode(OperationMode.CLOUD_FIRST)
-                .build();
-
-        nonAuthenticatedCloudDataClient = DataClientBuilder.create()
                 .operationMode(OperationMode.CLOUD_FIRST)
                 .build();
 
@@ -952,48 +947,7 @@ public class DevoxxService implements Service {
                 Services.get(DeviceService.class).map(DeviceService::getUuid).orElse(System.getProperty("user.name")),
                 SponsorBadge.class, SyncFlag.LIST_WRITE_THROUGH, SyncFlag.OBJECT_WRITE_THROUGH));
 
-        GluonObservableList<SponsorBadge> cloudSponsorBadges = DataProvider.retrieveList(nonAuthenticatedCloudDataClient.createListDataReader(getConference().getId() + "_" + sponsor.getSlug() + "_sponsor_badges",
-                SponsorBadge.class, SyncFlag.LIST_WRITE_THROUGH, SyncFlag.OBJECT_WRITE_THROUGH));
-
-        ObservableList<SponsorBadge> localBadgesWithExtractor = FXCollections.observableArrayList(sb -> new Observable[]{sb.detailsProperty()});
-        Bindings.bindContent(localBadgesWithExtractor, localSponsorBadges);
-
-        cloudSponsorBadges.setOnSucceeded(e -> {
-            addLocalItemsToCloud(cloudSponsorBadges, localSponsorBadges);
-            localBadgesWithExtractor.addListener((ListChangeListener<SponsorBadge>) c -> {
-                while (c.next()) {
-                    if (c.wasAdded()) {
-                        addLocalItemsToCloud(cloudSponsorBadges, c.getAddedSubList());
-                    } else if (c.wasRemoved()) {
-                        cloudSponsorBadges.removeAll(c.getRemoved());
-                    }
-                    else if (c.wasUpdated()) {
-                        int start = c.getFrom() ;
-                        int end = c.getTo() ;
-                        for (int i = start ; i < end ; i++) {
-                            SponsorBadge sponsorBadge = c.getList().get(i);
-                            int index = cloudSponsorBadges.indexOf(sponsorBadge);
-                            if (index != -1) {
-                                cloudSponsorBadges.remove(index);
-                                cloudSponsorBadges.add(index, sponsorBadge);
-                            }
-                        }
-                    }
-                }
-            });
-        });
-
         return localSponsorBadges;
-    }
-
-    private void addLocalItemsToCloud(GluonObservableList<SponsorBadge> cloudSponsorBadges, List<? extends SponsorBadge> localItems) {
-        List<SponsorBadge> items = new ArrayList<>();
-        for (SponsorBadge sponsorBadge : localItems) {
-            if (!cloudSponsorBadges.contains(sponsorBadge)) {
-                items.add(sponsorBadge);
-            }
-        }
-        cloudSponsorBadges.addAll(items);
     }
 
     private void loadCfpAccount(User user, Runnable successRunnable) {
