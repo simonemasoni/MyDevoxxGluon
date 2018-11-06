@@ -57,6 +57,7 @@ import javax.inject.Inject;
 import java.util.Optional;
 
 import static com.devoxx.model.BadgeType.ATTENDEE;
+import com.gluonhq.charm.glisten.application.ViewStackPolicy;
 
 public class AttendeeBadgePresenter extends GluonPresenter<DevoxxApplication> {
 
@@ -175,7 +176,8 @@ public class AttendeeBadgePresenter extends GluonPresenter<DevoxxApplication> {
             }
             if (!exists) {
                 attendeeBadges.itemsProperty().add(badge);
-                DevoxxView.BADGE.switchView().ifPresent(presenter -> ((BadgePresenter) presenter).setBadge(badge, ATTENDEE));
+                // Keep AttendeeBadgeView on stack 
+                DevoxxView.BADGE.switchView(ViewStackPolicy.USE).ifPresent(presenter -> ((BadgePresenter) presenter).setBadge(badge, ATTENDEE));
             }
         } else {
             Toast toast = new Toast(DevoxxBundle.getString("OTN.BADGES.BAD.QR"));

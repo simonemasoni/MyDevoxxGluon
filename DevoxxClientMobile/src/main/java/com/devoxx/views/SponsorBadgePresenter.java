@@ -41,6 +41,7 @@ import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.BarcodeScanService;
 import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
+import com.gluonhq.charm.glisten.application.ViewStackPolicy;
 import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.control.CharmListView;
 import com.gluonhq.charm.glisten.control.FloatingActionButton;
@@ -138,7 +139,8 @@ public class SponsorBadgePresenter extends GluonPresenter<DevoxxApplication> {
             if (!exists) {
                 badge.setSponsor(sponsor);
                 badges.add(badge);
-                DevoxxView.BADGE.switchView().ifPresent(presenter -> ((BadgePresenter) presenter).setBadge(badge, BadgeType.SPONSOR));
+                // Keep SponsorBadgeView on view stack 
+                DevoxxView.BADGE.switchView(ViewStackPolicy.USE).ifPresent(presenter -> ((BadgePresenter) presenter).setBadge(badge, BadgeType.SPONSOR));
             }
         } else {
             Toast toast = new Toast(DevoxxBundle.getString("OTN.BADGES.BAD.QR"));
