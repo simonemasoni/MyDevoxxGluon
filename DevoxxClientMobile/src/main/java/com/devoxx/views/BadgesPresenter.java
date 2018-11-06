@@ -29,16 +29,19 @@ import com.devoxx.DevoxxApplication;
 import com.devoxx.DevoxxView;
 import com.devoxx.model.BadgeType;
 import com.devoxx.model.Sponsor;
+import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxSettings;
 import com.gluonhq.charm.down.Services;
 import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
+import com.gluonhq.charm.glisten.application.ViewStackPolicy;
 import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.mvc.View;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 
+import javax.inject.Inject;
 import java.util.Optional;
 
 import static com.devoxx.model.BadgeType.valueOf;
@@ -56,6 +59,9 @@ public class BadgesPresenter extends GluonPresenter<DevoxxApplication> {
 
     @FXML
     private Button attendee;
+
+    @Inject
+    private Service service;
     
     public void initialize() {
         
@@ -107,7 +113,11 @@ public class BadgesPresenter extends GluonPresenter<DevoxxApplication> {
     }
 
     private void showAttendee() {
-        DevoxxView.ATTENDEE_BADGE.switchView();
+        if (service.isAuthenticated()) {
+            DevoxxView.ATTENDEE_BADGE.switchView();
+        } else {
+            DevoxxView.ATTENDEE_BADGE.switchView(ViewStackPolicy.USE).ifPresent(presenter -> ((AttendeeBadgePresenter)presenter).addToStack());
+        }
     }
 
     private void showSponsor() {
@@ -115,7 +125,7 @@ public class BadgesPresenter extends GluonPresenter<DevoxxApplication> {
         if (savedSponsor.isPresent()){
             DevoxxView.SPONSOR_BADGE.switchView().ifPresent(presenter -> ((SponsorBadgePresenter) presenter).setSponsor(savedSponsor.get()));
         } else {
-            DevoxxView.SPONSORS.switchView();
+            DevoxxView.SPONSORS.switchView(ViewStackPolicy.USE);
         }
     }
 

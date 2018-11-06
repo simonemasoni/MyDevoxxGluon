@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2016, Gluon Software
+ * Copyright (c) 2016, 2018 Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -51,11 +51,11 @@ public class DevoxxView {
     public static final AppView EXHIBITION_MAPS = view( ExhibitionMapsPresenter.class, MaterialDesignIcon.MAP,                SHOW_IN_DRAWER);
     public static final AppView EXHIBITION_MAP  = view( ExhibitionMapPresenter.class,  MaterialDesignIcon.MAP);
     public static final AppView SPONSORS        = view( SponsorsPresenter.class,       MaterialDesignIcon.CARD_MEMBERSHIP,    SKIP_VIEW_STACK);
-    public static final AppView ATTENDEE_BADGE  = view( AttendeeBadgePresenter.class,  MaterialDesignIcon.CARD_MEMBERSHIP);
-    public static final AppView SPONSOR_BADGE   = view( SponsorBadgePresenter.class,   MaterialDesignIcon.CARD_MEMBERSHIP);
+    public static final AppView ATTENDEE_BADGE  = view( AttendeeBadgePresenter.class,  MaterialDesignIcon.CARD_MEMBERSHIP,    SKIP_VIEW_STACK);
+    public static final AppView SPONSOR_BADGE   = view( SponsorBadgePresenter.class,   MaterialDesignIcon.CARD_MEMBERSHIP,    SKIP_VIEW_STACK);
     public static final AppView VENUE           = view( VenuePresenter.class,          MaterialDesignIcon.ACCESSIBILITY,      SHOW_IN_DRAWER);
     public static final AppView NOTES           = view( NotesPresenter.class,          MaterialDesignIcon.EVENT_NOTE,         SHOW_IN_DRAWER);
-    public static final AppView BADGES          = view( BadgesPresenter.class,         MaterialDesignIcon.CONTACTS,           SHOW_IN_DRAWER);
+    public static final AppView BADGES          = view( BadgesPresenter.class,         MaterialDesignIcon.CONTACTS,           SHOW_IN_DRAWER, SKIP_VIEW_STACK);
     public static final AppView BADGE           = view( BadgePresenter.class,          MaterialDesignIcon.CONTACTS);
     public static final AppView SEARCH          = view( SearchPresenter.class,         MaterialDesignIcon.SEARCH);
     public static final AppView ABOUT           = view( AboutPresenter.class,          MaterialDesignIcon.AC_UNIT,            SHOW_IN_DRAWER);

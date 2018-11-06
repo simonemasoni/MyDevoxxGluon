@@ -28,6 +28,7 @@ package com.devoxx.views.cell;
 import com.devoxx.DevoxxView;
 import com.devoxx.model.BadgeType;
 import com.devoxx.model.SponsorBadge;
+import com.gluonhq.charm.glisten.application.ViewStackPolicy;
 import com.gluonhq.charm.glisten.control.CharmListCell;
 import com.gluonhq.charm.glisten.control.ListTile;
 import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
@@ -58,7 +59,7 @@ public class BadgeCell<T extends Badge> extends CharmListCell<T> {
 
             // FIX for OTN-568
             tile.setOnMouseReleased(event -> {
-                DevoxxView.BADGE.switchView().ifPresent(presenter -> {
+                DevoxxView.BADGE.switchView(ViewStackPolicy.USE).ifPresent(presenter -> {
                     if (badge instanceof SponsorBadge) {
                         ((BadgePresenter) presenter).setBadge(badge, BadgeType.SPONSOR);
                     } else {
