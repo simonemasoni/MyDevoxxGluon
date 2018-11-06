@@ -38,6 +38,7 @@ import com.devoxx.util.DevoxxSearch;
 import com.devoxx.views.cell.SearchCell;
 import com.devoxx.views.cell.SearchHeaderCell;
 import com.devoxx.views.helper.Placeholder;
+import com.devoxx.views.helper.SessionVisuals;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.control.AppBar;
 import com.gluonhq.charm.glisten.control.CharmListView;
@@ -70,6 +71,9 @@ public class SearchPresenter extends GluonPresenter<DevoxxApplication> {
     
     @Inject
     private Service service;
+
+    @Inject
+    private SessionVisuals sessionVisuals;
 
     @Inject
     private DevoxxSearch devoxxSearch;
@@ -148,7 +152,7 @@ public class SearchPresenter extends GluonPresenter<DevoxxApplication> {
             }
         });
         searchListView.setHeadersFunction(item -> item.getClass().toString());
-        searchListView.setCellFactory(p -> new SearchCell(service));
+        searchListView.setCellFactory(p -> new SearchCell(service, sessionVisuals));
         searchListView.getStyleClass().add("search-list-view");
         searchListView.setItems(results);
         searchListView.setHeaderCellFactory(p -> new SearchHeaderCell());

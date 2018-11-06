@@ -27,6 +27,7 @@ package com.devoxx.views.cell;
 
 import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxSearch;
+import com.devoxx.views.helper.SessionVisuals;
 import com.gluonhq.charm.glisten.control.CharmListCell;
 
 import java.lang.ref.WeakReference;
@@ -46,16 +47,18 @@ public class SearchCell<T> extends CharmListCell<T> {
 
     private final List<String> DEFAULT;
     private final Service service;
-    
+    private final SessionVisuals sessionVisuals;
+
     private PseudoClass oldPseudoClass;
     private static final List<String> COMMON_CELL_PSEUDO_CLASSES = Arrays.asList("odd", "even", "selected", "focused", "empty", "filled");
 
-    private final Map<String, WeakReference<CharmListCell<T>>> cellsCache = 
+    private final Map<String, WeakReference<CharmListCell<T>>> cellsCache =
             Collections.synchronizedMap(new HashMap<>());
-    
-    public SearchCell(Service service) {
+
+    public SearchCell(Service service, SessionVisuals sessionVisuals) {
         DEFAULT = getStyleClass();
         this.service = service;
+        this.sessionVisuals = sessionVisuals;
     }
     
     @Override
@@ -105,11 +108,13 @@ public class SearchCell<T> extends CharmListCell<T> {
             if (cells == null) {
                 Class<?> clazz = DevoxxSearch.CELL_MAP.get(name);
                 CharmListCell<T> charmListCell = null;
-                try {
-                    charmListCell = (CharmListCell<T>) clazz.getConstructor(Service.class).newInstance(service);
-                } catch (NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) { }
-                
-                if (charmListCell == null) {
+
+                if (clazz.isAssignableFrom(ScheduleCell.class)) {
+                    try {
+                        charmListCell = (CharmListCell<T>) clazz.getConstructor(Service.class, SessionVisuals.class, boolean.class, boolean.class).newInstance(service, sessionVisuals, false, true);
+                    } catch (NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
+                    }
+                } else {
                     charmListCell = (CharmListCell<T>) clazz.newInstance();
                 }
                 
