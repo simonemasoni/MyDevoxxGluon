@@ -686,6 +686,11 @@ public class DevoxxService implements Service {
         return favoredSessions;
     }
 
+    @Override
+    public String getCfpUserUid() {
+        return cfpUserUuid.get();
+    }
+
     private ObservableList<Session> internalRetrieveFavoredSessions() {
         if (!isAuthenticated()) {
             throw new IllegalStateException("An authenticated user that was verified at Devoxx CFP must be available when calling this method.");

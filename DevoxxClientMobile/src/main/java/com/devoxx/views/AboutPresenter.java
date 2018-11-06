@@ -26,19 +26,28 @@
 package com.devoxx.views;
 
 import com.devoxx.DevoxxApplication;
+import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
 import com.devoxx.util.DevoxxSettings;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.control.AppBar;
+import com.gluonhq.charm.glisten.control.Dialog;
 import com.gluonhq.charm.glisten.mvc.View;
 import com.devoxx.DevoxxView;
 import com.gluonhq.cloudlink.client.media.MediaClient;
+import com.gluonhq.cloudlink.client.user.User;
 import javafx.fxml.FXML;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.VBox;
+import javafx.scene.text.TextFlow;
 
+import javax.inject.Inject;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -67,6 +76,9 @@ public class AboutPresenter extends GluonPresenter<DevoxxApplication> {
     @FXML
     private Label gluonLabel;
 
+    @Inject
+    private Service service;
+
     public void initialize() {
         mediaClient = new MediaClient();
 
@@ -89,8 +101,56 @@ public class AboutPresenter extends GluonPresenter<DevoxxApplication> {
         devoxxImage.setFitWidth(290.0);
         gluonLogo.setFitWidth(250);
 
+        gluonLogo.setOnMouseClicked(event -> {
+            createDebugDialog().showAndWait();
+        });
+
         devoxxLabel.setText(DevoxxBundle.getString("OTN.ABOUT.LABEL.DEVOXX", DevoxxSettings.BUILD_NUMBER));
         gluonLabel.setText(DevoxxBundle.getString("OTN.ABOUT.LABEL.GLUON"));
 
+    }
+
+    private Dialog<TextFlow> createDebugDialog() {
+        StringBuilder debug = new StringBuilder();
+        debug.append(service.getCfpUserUid()).append("\n");
+        if (service.isAuthenticated()) {
+            User user = service.getAuthenticatedUser();
+            debug.append(user.getEmail()).append("\n");
+            debug.append(user.getLoginMethod().name()).append("\n");
+            debug.append(user.getNetworkId()).append("\n");
+        } else {
+            debug.append("no user authenticated\n");
+        }
+        if (service.getConference() != null) {
+            debug.append(service.getConference().getCfpVersion()).append(" - ").append(service.getConference().getId()).append("\n");
+            debug.append(service.getConference().getCfpURL()).append("\n");
+        }
+
+
+        Services.get(SettingsService.class).ifPresent(settingsService -> {
+            debug.append(settingsService.retrieve(DevoxxSettings.SAVED_CONFERENCE_ID)).append("\n");
+            debug.append(settingsService.retrieve(DevoxxSettings.SAVED_CONFERENCE_NAME)).append("\n");
+            debug.append(settingsService.retrieve(DevoxxSettings.SAVED_CONFERENCE_TYPE)).append("\n");
+            debug.append(settingsService.retrieve(DevoxxSettings.SAVED_ACCOUNT_ID)).append("\n");
+            debug.append(settingsService.retrieve(DevoxxSettings.BADGE_TYPE)).append("\n");
+            debug.append(settingsService.retrieve(DevoxxSettings.BADGE_SPONSOR)).append("\n");
+            debug.append(settingsService.retrieve(DevoxxSettings.RELOAD)).append("\n");
+            debug.append(DevoxxSettings.BUILD_NUMBER).append("\n");
+        });
+
+        final Dialog<TextFlow> information = new Dialog<>();
+
+        final Label text = new Label(debug.toString());
+        text.setWrapText(true);
+
+        Button okButton = new Button("OK");
+        okButton.setOnAction(e -> information.hide());
+        information.getButtons().add(okButton);
+
+        final VBox content = new VBox(10, text);
+        content.getStyleClass().add("sch-fav-dialog");
+        information.setContent(content);
+        information.setTitleText("Debug Info");
+        return information;
     }
 }

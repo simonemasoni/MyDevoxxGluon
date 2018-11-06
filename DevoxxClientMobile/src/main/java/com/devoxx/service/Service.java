@@ -286,6 +286,12 @@ public interface Service {
     User getAuthenticatedUser();
 
     /**
+     * Returns the cfp user uid, if present. Otherwise, returns null.
+     * @return the cfp user uid, if present.
+     */
+    String getCfpUserUid();
+
+    /**
      * Submits the user feedback
      */
     void sendFeedback(Feedback feedback);
