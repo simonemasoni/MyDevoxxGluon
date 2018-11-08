@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017, Gluon Software
+ * Copyright (c) 2017, 2018 Gluon Software
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without modification, are permitted provided that the
@@ -26,8 +26,17 @@
 @import "devoxx_android.css";
 
 @font-face {
-    font-family: 'Open Sans', sans-serif;
-    src: url('OpenSans-SemiBold.ttf');
+    font-family: 'Roboto Condensed Bold', sans-serif;
+    src: url('RobotoCondensed-Bold.ttf');
+}
+
+@font-face {
+    font-family: 'Roboto Condensed', sans-serif;
+    src: url('RobotoCondensed-Regular.ttf');
+}
+
+.root {
+    -fx-font-family: 'Roboto Condensed';
 }
 
 .app-bar > .title-box > .label,
@@ -35,5 +44,5 @@
 .vote-pane > .title-box > .title,
 .dialog > .container > .dialog-title,
 .dialog .dialog-badge-title.label {
-    -fx-font-family: 'Open Sans';
+    -fx-font-family: 'Roboto Condensed Bold';
 }
