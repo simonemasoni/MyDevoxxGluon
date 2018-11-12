@@ -196,9 +196,8 @@ public class DevoxxService implements Service {
 
         conferenceProperty().addListener((obs, ov, nv) -> {
             if (nv != null) {
+                clearCfpAccount();
                 if (ov != null) {
-                    clearCfpAccount();
-
                     if (authenticationClient.isAuthenticated()) {
                         // Load all authenticated data once user has been authenticated
                         loadCfpAccount(authenticationClient.getAuthenticatedUser(), this::retrieveAuthenticatedUserSessionInformation);
