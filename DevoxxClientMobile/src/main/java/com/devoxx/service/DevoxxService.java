@@ -196,8 +196,8 @@ public class DevoxxService implements Service {
 
         conferenceProperty().addListener((obs, ov, nv) -> {
             if (nv != null) {
-                clearCfpAccount();
                 if (ov != null) {
+                    clearCfpAccount();
                     if (authenticationClient.isAuthenticated()) {
                         // Load all authenticated data once user has been authenticated
                         loadCfpAccount(authenticationClient.getAuthenticatedUser(), this::retrieveAuthenticatedUserSessionInformation);
@@ -237,6 +237,7 @@ public class DevoxxService implements Service {
                     retrieveConference(configuredConferenceId);
                 } else {
                     LOG.log(Level.WARNING, "Found old conference id format, removing it");
+                    clearCfpAccount();
                     settingsService.remove(DevoxxSettings.SAVED_CONFERENCE_ID);
                 }
             }
