@@ -354,7 +354,7 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         later.setOnAction(e -> {
             sessions.setTop(null);
             Services.get(SettingsService.class).ifPresent(ss -> {
-                ss.store(service.getConference().getId() + DevoxxSettings.RATING, Boolean.FALSE.toString());
+                ss.store(service.getConference().getId() + "_" + DevoxxSettings.RATING, "SHOWN");
             });
         });
         no.setOnAction(e -> {
