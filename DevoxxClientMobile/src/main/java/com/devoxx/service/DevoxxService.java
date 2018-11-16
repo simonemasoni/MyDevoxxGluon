@@ -57,9 +57,6 @@ import javafx.collections.ObservableList;
 import javafx.concurrent.Task;
 import javafx.scene.control.Button;
 
-import javax.json.Json;
-import javax.json.JsonObject;
-import javax.json.JsonReader;
 import java.io.*;
 import java.time.Instant;
 import java.time.ZoneId;
@@ -70,7 +67,6 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
@@ -950,42 +946,6 @@ public class DevoxxService implements Service {
             settingsService.remove(DevoxxSettings.BADGE_TYPE);
             settingsService.remove(DevoxxSettings.BADGE_SPONSOR);
         });
-    }
-
-    private String readConferenceIdFromFile(File reload) {
-        StringBuilder fileContent = new StringBuilder((int) reload.length());
-        try (Scanner scanner = new Scanner(reload)) {
-            String lineSeparator = System.getProperty("line.separator");
-            while (scanner.hasNextLine()) {
-                fileContent.append(scanner.nextLine()).append(lineSeparator);
-            }
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        LOG.log(Level.INFO, "read reload file '" + fileContent.toString() + "'");
-        return findConferenceIdFromString(fileContent.toString());
-    }
-
-    private String findConferenceIdFromString(String fileContent) {
-        try {
-            String trimmedContent = fileContent.replaceAll("\"", "")
-                    .replaceAll(" ", "")
-                    .replaceAll("\\}", ",");
-            String[] keyValue = trimmedContent.split(",");
-            for (String aKeyValue : keyValue) {
-                if (aKeyValue.contains("body")) {
-                    return aKeyValue.split(":")[1];
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "";
-    }
-
-    private static JsonObject createJsonObject(String fileContent) {
-        JsonReader reader = Json.createReader(new StringReader(fileContent));
-        return (JsonObject) reader.read();
     }
 
     private static ZonedDateTime timeToZonedDateTime(long time, ZoneId zoneId) {
