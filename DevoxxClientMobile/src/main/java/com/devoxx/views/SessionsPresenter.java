@@ -38,6 +38,8 @@ import com.devoxx.views.helper.LoginPrompter;
 import com.devoxx.views.helper.Placeholder;
 import com.devoxx.views.helper.SessionVisuals.SessionListType;
 import com.devoxx.views.helper.Util;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.SettingsService;
 import com.gluonhq.charm.glisten.afterburner.GluonPresenter;
 import com.gluonhq.charm.glisten.afterburner.GluonView;
 import com.gluonhq.charm.glisten.application.MobileApplication;
@@ -349,7 +351,12 @@ public class SessionsPresenter  extends GluonPresenter<DevoxxApplication> {
         buttons.getStyleClass().add("buttons");
         no.getStyleClass().add("no");
         yes.getStyleClass().add("yes");
-        later.setOnAction(e -> sessions.setTop(null));
+        later.setOnAction(e -> {
+            sessions.setTop(null);
+            Services.get(SettingsService.class).ifPresent(ss -> {
+                ss.store(service.getConference().getId() + DevoxxSettings.RATING, Boolean.FALSE.toString());
+            });
+        });
         no.setOnAction(e -> {
             header.setText(DevoxxBundle.getString("OTN.FEEDBACK.QUESTION.IMPROVE"));
             final Button feedback = createFlatButton(DevoxxBundle.getString("OTN.FEEDBACK.BUTTON.FEEDBACK"));

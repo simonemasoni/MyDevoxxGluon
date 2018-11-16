@@ -59,6 +59,7 @@ import javafx.scene.control.Button;
 
 import java.io.*;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -374,15 +375,11 @@ public class DevoxxService implements Service {
 
     @Override
     public boolean showRatingDialog() {
-        if (rootDir != null) {
-            File rating = new File(rootDir, DevoxxSettings.RATING);
-            LOG.log(Level.INFO, "Rating requested? " + rating.exists());
-            if (rating.exists()) {
-                rating.delete();
-                return true;
-            }
-        }
-        return false;
+        if (getConference() == null) return false;
+        return Services.get(SettingsService.class).map(ss -> {
+            String retrieve = ss.retrieve(getConference().getId() + DevoxxSettings.RATING);
+            return retrieve != null && retrieve.equalsIgnoreCase(Boolean.TRUE.toString());
+        }).orElse(false);
     }
 
     @Override
@@ -446,6 +443,7 @@ public class DevoxxService implements Service {
             LOG.log(Level.WARNING, String.format(REMOTE_FUNCTION_FAILED_MSG, "sessions"), e.getSource().getException());
         });
         sessionsList.setOnSucceeded(e -> {
+            isRatingRequired();
             retrievingSessions.set(false);
             sessionsList.removeListener(sessionsListChangeListener);
             retrieveAuthenticatedUserSessionInformation();
@@ -946,6 +944,42 @@ public class DevoxxService implements Service {
             settingsService.remove(DevoxxSettings.BADGE_TYPE);
             settingsService.remove(DevoxxSettings.BADGE_SPONSOR);
         });
+    }
+
+    /**
+     * The method looks for a setting with key conferenceId + "rating". If it finds it, irrespective of
+     * the value, the method is a no-op.
+     *
+     * If the value is not found, the method checks the current time of the device and compares it with last session
+     * of the last day of the conference and if the time is an hour before the start of the session, it creates a
+     * setting with value = TRUE.
+     *
+     * The value is later read by {@link #showRatingDialog()} and updated in {@link com.devoxx.views.SessionsPresenter#createReviewGrid()}
+     * through an user interaction.
+     */
+    private void isRatingRequired() {
+        Services.get(SettingsService.class).ifPresent(ss -> {
+            String retrieve = ss.retrieve(getConference().getId() + DevoxxSettings.RATING);
+            if (retrieve == null) {
+                ZonedDateTime currentTime = ZonedDateTime.of(LocalDateTime.now(), getConference().getConferenceZoneId());
+                if (currentTime.isAfter(findLastSessionOfLastDay().getStartDate().minusHours(1))) {
+                    ss.store(getConference().getId() + DevoxxSettings.RATING, Boolean.TRUE.toString());
+                }
+            }
+        });
+    }
+
+    private Session findLastSessionOfLastDay() {
+        Session lastSession = sessions.get(0);
+        for (Session session : sessions) {
+            if (session.getStartDate().toLocalDate().equals(getConference().getEndDateTime().toLocalDate())) {
+                ZonedDateTime sessionStartTime = session.getStartDate();
+                if (sessionStartTime.isAfter(lastSession.getStartDate())) {
+                    lastSession = session;
+                }
+            }
+        }
+        return lastSession;
     }
 
     private static ZonedDateTime timeToZonedDateTime(long time, ZoneId zoneId) {
