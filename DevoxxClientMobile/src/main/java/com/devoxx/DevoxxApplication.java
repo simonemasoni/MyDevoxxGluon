@@ -34,7 +34,6 @@ import com.devoxx.model.SponsorBadge;
 import com.devoxx.service.DevoxxService;
 import com.devoxx.service.Service;
 import com.devoxx.util.*;
-import com.devoxx.views.DevoxxSplash;
 import com.devoxx.views.SessionsPresenter;
 import com.devoxx.views.helper.ConnectivityUtils;
 import com.devoxx.views.helper.SessionVisuals;
@@ -89,7 +88,6 @@ public class DevoxxApplication extends MobileApplication {
 
     private Service service;
 
-    private boolean skipVideo = false;
     private boolean signUp = false;
 
     @Override
@@ -110,21 +108,11 @@ public class DevoxxApplication extends MobileApplication {
         }
 
         Services.get(SettingsService.class).ifPresent(settings -> {
-            String skip = settings.retrieve(DevoxxSettings.SKIP_VIDEO);
-            if (!Strings.isNullOrEmpty(skip)) {
-                skipVideo = Boolean.parseBoolean(skip);
-            }
             String sign = settings.retrieve(DevoxxSettings.SIGN_UP);
             if (!Strings.isNullOrEmpty(sign)) {
                 signUp = Boolean.parseBoolean(sign);
             }
         });
-        if (!skipVideo) {
-            Services.get(SettingsService.class).ifPresent(settings ->
-                    settings.store(DevoxxSettings.SKIP_VIDEO, Boolean.TRUE.toString())
-            );
-            addViewFactory(SPLASH_VIEW, DevoxxSplash::new);
-        }
     }
 
     @Override
