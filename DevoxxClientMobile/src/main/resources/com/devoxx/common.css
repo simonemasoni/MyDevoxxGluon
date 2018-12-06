@@ -830,22 +830,6 @@
     -charm-radius: 3.333333em; 
 }
 
-/* Video View */
-
-.video-view {
-    -fx-background-color:  #363C5A;
-}
-
-.video-view > .container {
-    -fx-alignement: center-left;
-    -fx-padding: 10;
-    
-}
-
-.video-view > VBox > .progress-bar {
-    -fx-color: #DF9356;
-}
-
 /**************************
 /*   OTN EXPERIENCES
 /**************************
