@@ -25,34 +25,7 @@
  */
 package com.devoxx;
 
-import com.airhacks.afterburner.injection.Injector;
-import com.devoxx.model.Badge;
-import com.devoxx.model.BadgeType;
-import com.devoxx.model.Conference;
-import com.devoxx.model.Sponsor;
-import com.devoxx.model.SponsorBadge;
-import com.devoxx.service.DevoxxService;
-import com.devoxx.service.Service;
-import com.devoxx.util.*;
-import com.devoxx.views.SessionsPresenter;
-import com.devoxx.views.helper.ConnectivityUtils;
-import com.devoxx.views.helper.SessionVisuals;
-import com.devoxx.views.layer.ConferenceLoadingLayer;
-import com.gluonhq.charm.down.Platform;
-import com.gluonhq.charm.down.Services;
-import com.gluonhq.charm.down.plugins.*;
-import com.gluonhq.charm.glisten.afterburner.AppView;
-import com.gluonhq.charm.glisten.afterburner.GluonInstanceProvider;
-import com.gluonhq.charm.glisten.application.MobileApplication;
-import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
-import com.gluonhq.cloudlink.client.usage.UsageClient;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.image.Image;
-import javafx.stage.Stage;
-import javafx.stage.Window;
+import static com.devoxx.DevoxxView.SEARCH;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -65,7 +38,46 @@ import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static com.devoxx.DevoxxView.SEARCH;
+import com.airhacks.afterburner.injection.Injector;
+import com.devoxx.model.Badge;
+import com.devoxx.model.BadgeType;
+import com.devoxx.model.Conference;
+import com.devoxx.model.Sponsor;
+import com.devoxx.model.SponsorBadge;
+import com.devoxx.service.JavaConfService;
+import com.devoxx.service.Service;
+import com.devoxx.util.DevoxxBundle;
+import com.devoxx.util.DevoxxCountry;
+import com.devoxx.util.DevoxxLogging;
+import com.devoxx.util.DevoxxNotifications;
+import com.devoxx.util.DevoxxSearch;
+import com.devoxx.util.DevoxxSettings;
+import com.devoxx.util.Strings;
+import com.devoxx.views.SessionsPresenter;
+import com.devoxx.views.helper.ConnectivityUtils;
+import com.devoxx.views.helper.SessionVisuals;
+import com.devoxx.views.layer.ConferenceLoadingLayer;
+import com.gluonhq.charm.down.Platform;
+import com.gluonhq.charm.down.Services;
+import com.gluonhq.charm.down.plugins.ConnectivityService;
+import com.gluonhq.charm.down.plugins.DeviceService;
+import com.gluonhq.charm.down.plugins.DisplayService;
+import com.gluonhq.charm.down.plugins.SettingsService;
+import com.gluonhq.charm.down.plugins.ShareService;
+import com.gluonhq.charm.down.plugins.StorageService;
+import com.gluonhq.charm.glisten.afterburner.AppView;
+import com.gluonhq.charm.glisten.afterburner.GluonInstanceProvider;
+import com.gluonhq.charm.glisten.application.MobileApplication;
+import com.gluonhq.charm.glisten.visual.MaterialDesignIcon;
+import com.gluonhq.cloudlink.client.usage.UsageClient;
+
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.image.Image;
+import javafx.stage.Stage;
+import javafx.stage.Window;
 
 public class DevoxxApplication extends MobileApplication {
 
@@ -73,7 +85,7 @@ public class DevoxxApplication extends MobileApplication {
     public static final String POPUP_FILTER_SESSIONS_MENU = "FilterSessionsMenu";
 
     private static final GluonInstanceProvider instanceSupplier = new GluonInstanceProvider() {{
-        bindProvider(Service.class, DevoxxService::new);
+        bindProvider(Service.class, JavaConfService::new);
         bindProvider(DevoxxSearch.class, DevoxxSearch::new);
         bindProvider(DevoxxNotifications.class, DevoxxNotifications::new);
         bindProvider(SessionVisuals.class, SessionVisuals::new);
