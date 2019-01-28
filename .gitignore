@@ -11,4 +11,4 @@ out/
 *.iml
 
 # Custom
-DevoxxClientMobile/src/main/resources/gluoncloudlink_config.json
+.settings
