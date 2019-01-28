@@ -14,13 +14,6 @@ repositories {
     maven {
         url 'http://nexus.gluonhq.com/nexus/content/repositories/releases'
     }
-    maven {
-        url 'http://nexus.gluonhq.com/nexus/content/repositories/gluon-oss-daily/'
-        credentials {
-            username gluonNexusUsername
-            password gluonNexusPassword
-        }
-    }
 }
 
 mainClassName = 'com.devoxx.DevoxxApplication'
@@ -49,7 +42,7 @@ configurations.all {
 }
 
 jfxmobile {
-    javafxportsVersion = '8.60.d180928b'
+    javafxportsVersion = '8.60.9'
     downConfig {
         version charm_down_version
         plugins 'barcode-scan', 'browser', 'cache', 'connectivity', 'device', 'display', 'lifecycle',
