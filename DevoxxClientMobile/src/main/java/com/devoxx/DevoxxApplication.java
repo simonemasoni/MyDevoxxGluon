@@ -44,6 +44,7 @@ import com.devoxx.model.BadgeType;
 import com.devoxx.model.Conference;
 import com.devoxx.model.Sponsor;
 import com.devoxx.model.SponsorBadge;
+import com.devoxx.service.DevoxxService;
 import com.devoxx.service.JavaConfService;
 import com.devoxx.service.Service;
 import com.devoxx.util.DevoxxBundle;
@@ -85,7 +86,7 @@ public class DevoxxApplication extends MobileApplication {
     public static final String POPUP_FILTER_SESSIONS_MENU = "FilterSessionsMenu";
 
     private static final GluonInstanceProvider instanceSupplier = new GluonInstanceProvider() {{
-        bindProvider(Service.class, JavaConfService::new);
+        bindProvider(Service.class, DevoxxService::new);
         bindProvider(DevoxxSearch.class, DevoxxSearch::new);
         bindProvider(DevoxxNotifications.class, DevoxxNotifications::new);
         bindProvider(SessionVisuals.class, SessionVisuals::new);
